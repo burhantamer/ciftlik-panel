@@ -1790,17 +1790,18 @@ function renderStatsFor(id) {
   const toplamGelir = urun.toplamGelir || 0;
   const netGelir = toplamGelir - toplamMasraf;
   document.getElementById('u-stats-'+id).innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;font-size:12px">
+      <span style="background:#f0ebe0;border-radius:4px;padding:3px 8px"><span style="color:var(--muted)">Ekilen:</span> <b>${toplamFide} adet</b></span>
+      <span style="background:#f0ebe0;border-radius:4px;padding:3px 8px"><span style="color:var(--muted)">Hasat:</span> <b>${toplamHasat} ${urun.birim}</b></span>
+      <span style="background:#f0ebe0;border-radius:4px;padding:3px 8px"><span style="color:var(--muted)">Satılan:</span> <b>${toplamSatis} ${urun.birim}</b></span>
+      <span style="background:#f0ebe0;border-radius:4px;padding:3px 8px"><span style="color:var(--muted)">Gelir:</span> <b style="color:var(--leaf)">${toplamGelir > 0 ? toplamGelir.toLocaleString('tr-TR')+' ₺' : '—'}</b></span>
+      <span style="background:#fde8e8;border-radius:4px;padding:3px 8px"><span style="color:var(--muted)">Masraf:</span> <b style="color:var(--red)">${toplamMasraf > 0 ? toplamMasraf.toLocaleString('tr-TR')+' ₺' : '—'}</b></span>
+      <span style="background:${netGelir >= 0 ? '#e8f5ec' : '#fde8e8'};border-radius:4px;padding:3px 8px"><span style="color:var(--muted)">Net:</span> <b style="color:${netGelir >= 0 ? 'var(--leaf)' : 'var(--red)'}">${netGelir !== 0 ? (netGelir > 0 ? '+' : '')+netGelir.toLocaleString('tr-TR')+' ₺' : '—'}</b></span>
+    </div>
+    <div style="display:none">
       <div>
-        <div class="stat-box"><div class="stat-label">Toplam Ekilen</div><div class="stat-val">${toplamFide}<span class="stat-unit"> adet</span></div></div>
-        <div class="stat-box"><div class="stat-label">Toplam Hasat</div><div class="stat-val">${toplamHasat}<span class="stat-unit"> ${urun.birim}</span></div></div>
-        <div class="stat-box"><div class="stat-label">Toplam Satılan</div><div class="stat-val">${toplamSatis}<span class="stat-unit"> ${urun.birim}</span></div></div>
-      </div>
-      <div>
-        <div class="stat-box" style="cursor:pointer" onclick="toggleUrunGelirDetay('${id}')">
-          <div class="stat-label">Satış Geliri</div>
-          <div class="stat-val">${toplamGelir > 0 ? toplamGelir.toLocaleString('tr-TR')+' ₺' : '—'}</div>
-          <div id="urun-gelir-detay-${id}" style="display:none;margin-top:8px;border-top:1px solid var(--border);padding-top:8px"></div>
+        <div class="stat-box" style="display:none" onclick="toggleUrunGelirDetay('${id}')">
+          <div id="urun-gelir-detay-${id}" style="display:none"></div>
         </div>
         <div class="stat-box"><div class="stat-label">Toplam Masraf</div><div class="stat-val red">${toplamMasraf > 0 ? toplamMasraf+' ₺' : '—'}</div></div>
         <div class="stat-box"><div class="stat-label">Net Gelir</div><div class="stat-val ${netGelir>=0?'':'red'}">${(toplamGelir>0||toplamMasraf>0) ? netGelir+' ₺' : '—'}</div></div>
@@ -1813,37 +1814,35 @@ function renderEkilişlerFor(id) {
   const urun = getUrunler().find(u => u.id === id);
   const el = document.getElementById('u-parti-list-'+id);
   if (!el) return;
-  if (!urun?.partiler?.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><p>Henüz parti eklenmedi</p></div>'; return; }
+  if (!urun?.partiler?.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><p>Henüz ekiliş eklenmedi</p></div>';
+    return;
+  }
   el.innerHTML = urun.partiler.map(p => `
-    <div style="display:flex;align-items:center;padding:5px 12px;border-bottom:1px solid #f0ebe0;gap:6px;cursor:pointer" onclick="toggleParti('${p.id}')">
-      <div style="flex:1;display:flex;align-items:center;gap:8px;overflow:hidden">
-        <span style="font-weight:600;font-size:13px;color:var(--bark);white-space:nowrap">${p.ad}</span>
-        <span style="font-size:12px;color:var(--muted)">${p.ekim ? fmtDate(p.ekim) : '—'}</span>
-        <span style="font-size:12px;color:var(--subtext)">${p.fide ? p.fide+' adet' : ''}</span>
+    <div style="border-bottom:1px solid #f0ebe0">
+      <div style="display:flex;align-items:center;padding:6px 12px;gap:6px;cursor:pointer" onclick="toggleParti('${p.id}')">
+        <div style="flex:1;display:flex;align-items:center;gap:8px;overflow:hidden">
+          <span style="font-weight:600;font-size:13px;color:var(--bark);white-space:nowrap">${p.ad}</span>
+          <span style="font-size:12px;color:var(--muted)">${p.ekim ? fmtDate(p.ekim) : '—'}</span>
+          <span style="font-size:12px;color:var(--subtext)">${p.fide ? p.fide+' adet' : ''}</span>
+        </div>
+        <div style="display:flex;gap:4px;align-items:center;flex-shrink:0" onclick="event.stopPropagation()">
+          <button class="btn-sm btn-edit" onclick="editParti('${p.id}')">✎</button>
+          <button class="btn-sm btn-del" onclick="deleteParti('${p.id}')">✕</button>
+          <span style="color:var(--leaf);font-size:12px" id="u-arrow-parti-${p.id}">⋁</span>
+        </div>
       </div>
-      <div style="display:flex;gap:4px;align-items:center;flex-shrink:0" onclick="event.stopPropagation()">
-        <button class="btn-sm btn-edit" onclick="editParti('${p.id}')">✎</button>
-        <button class="btn-sm btn-del" onclick="deleteParti('${p.id}')">✕</button>
-      </div>
-    </div>
-    <div id="u-parti-detail-${p.id}" style="display:none">
-      <div style="display:none">
-      <div id="u-parti-detail-${p.id}" style="display:none;border-top:1px solid var(--border);padding:8px 12px;background:#fafaf7">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div>
-            <div class="detail-row" style="margin-bottom:8px">Ekim Tarihi<br><span>${fmtDate(p.ekim)}</span></div>
-            <div class="detail-row" style="margin-bottom:8px">Hasat Başlangıç<br><span>${fmtDate(p.hasatBas)}</span></div>
-            <div class="detail-row">Hasat Bitiş<br><span>${fmtDate(p.hasatBit)}</span></div>
-          </div>
-          <div>
-            <div class="detail-row" style="margin-bottom:8px">Ekilen Fide<br><span>${p.fide ? p.fide+' adet' : '—'}</span></div>
-            <div class="detail-row" style="margin-bottom:8px">Hasat Edilen<br><span>${p.toplamHasat || '—'}</span></div>
-            <div class="detail-row">Net Satılan<br><span>${p.toplamSatis || '—'}</span></div>
-          </div>
+      <div id="u-parti-detail-${p.id}" style="display:none;padding:8px 14px 10px;background:#fafaf7;border-top:1px solid #f0ebe0">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
+          <div><span style="color:var(--muted)">Ekim:</span> <span style="font-weight:600">${fmtDate(p.ekim)||'—'}</span></div>
+          <div><span style="color:var(--muted)">Fide:</span> <span style="font-weight:600">${p.fide ? p.fide+' adet' : '—'}</span></div>
+          <div><span style="color:var(--muted)">Hasat Baş:</span> <span style="font-weight:600">${fmtDate(p.hasatBas)||'—'}</span></div>
+          <div><span style="color:var(--muted)">Hasat Bit:</span> <span style="font-weight:600">${fmtDate(p.hasatBit)||'—'}</span></div>
         </div>
       </div>
     </div>`).join('');
 }
+
 
 function renderMasraflarFor(id) {
   uCurrentUrunId = id;
@@ -1861,14 +1860,18 @@ function renderMasraflarFor(id) {
   const ekstraTurler = JSON.parse(localStorage.getItem('masraf_turleri') || '[]');
   const tL = { fide:'Fide', isci:'İşçilik', genel:'Genel', ...Object.fromEntries(ekstraTurler.map(t=>[t,t])) };
   const tC = { fide:'tur-fide', isci:'tur-isci', genel:'tur-genel' };
+  const _stdT = ['fide','isci','genel'];
+  const _renkler = ['#7b6cb0','#c0614e','#4a90d9','#d4874a','#5a9e8f','#a05cb0','#7a8c3a'];
   el.innerHTML = allItems.map(m => {
-    const mid = m.id.replace(/[^a-z0-9]/gi,'');
     const tutarStr = m.tutar ? parseFloat(m.tutar).toLocaleString('tr-TR')+' ₺' : '? ₺';
-    return `<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid #f0ebe0;gap:6px">
+    const turClass = _stdT.includes(m.tur) ? tC[m.tur] || 'tur-genel' : 'tur-custom';
+    const turRenk = _stdT.includes(m.tur) ? '' : `style="background:${_renkler[ekstraTurler.indexOf(m.tur) % _renkler.length] || '#888'}"`;
+    return `<div style="display:flex;align-items:center;padding:5px 12px;border-bottom:1px solid #f0ebe0;gap:6px">
+      <span class="masraf-tarih-badge">${fmtDateShort(m.tarih)||'—'}</span>
       <div style="flex:1;overflow:hidden;font-size:13px">
-        <span style="font-weight:700">${fmtDateShort(m.tarih)}&nbsp;&nbsp;${tutarStr}</span>
-        <span class="${tC[m.tur]}"> ${tL[m.tur]}</span>
-        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"> ${m.acik||''}</span>
+        <span style="font-weight:700">${tutarStr}</span>
+        <span class="${turClass}" ${turRenk}> ${tL[m.tur]||m.tur}</span>
+        <span style="color:var(--muted)"> ${m.acik||''}</span>
       </div>
       <div style="display:flex;gap:4px;flex-shrink:0">
         <button class="btn-sm btn-edit" onclick="editMasraf('${m.donemKey}','${m.id}')">✎</button>
@@ -1880,10 +1883,11 @@ function renderMasraflarFor(id) {
 
 function toggleParti(pid) {
   const d = document.getElementById('u-parti-detail-'+pid);
-  const a = document.getElementById('u-arrow-'+pid);
+  const a = document.getElementById('u-arrow-parti-'+pid);
+  if (!d) return;
   const open = d.style.display === 'block';
   d.style.display = open ? 'none' : 'block';
-  if (a) a.textContent = open ? '›' : '⌄';
+  if (a) a.textContent = open ? '⋁' : '⋀';
 }
 
 // ══════════════════════ HASAT MODÜLÜ ══════════════════════
