@@ -3986,33 +3986,6 @@ function s_renderOdemeler(aliciId) {
     </div>`;
   });
 
-  // Her zaman ödeme ekle butonu
-  const genelEk = encodeURIComponent('genel_' + aliciId);
-  const genelFormId = 'of-' + genelEk;
-  satirlar += `<div style="padding:8px 0">
-    <button onclick="s_toggleOdemeForm('${genelFormId}')" style="background:none;border:1px solid var(--leaf);color:var(--leaf);border-radius:6px;padding:5px 12px;font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer">+ Ödeme Ekle</button>
-  </div>
-  <div id="${genelFormId}" style="display:none;background:#f5f0e8;border-radius:8px;padding:10px;margin-bottom:8px">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      <div>
-        <label style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);display:block;margin-bottom:4px">Tutar (₺)</label>
-        <input class="form-input" id="od-tutar-${genelEk}" type="number" placeholder="0" style="font-size:13px;padding:7px 10px">
-      </div>
-      <div>
-        <label style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);display:block;margin-bottom:4px">Tarih</label>
-        <input class="form-input" id="od-tarih-${genelEk}" type="date" style="font-size:13px;padding:7px 10px">
-      </div>
-    </div>
-    <div style="margin-bottom:8px">
-      <label style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);display:block;margin-bottom:4px">Açıklama — opsiyonel</label>
-      <input class="form-input" id="od-acik-${genelEk}" type="text" placeholder="kısa açıklama" maxlength="30" style="font-size:13px;padding:7px 10px">
-    </div>
-    <div style="display:flex;gap:6px">
-      <button onclick="s_odemeEkleDonem('${aliciId}','genel','${genelEk}')" class="btn-add" style="justify-content:center">✓ Kaydet</button>
-      <button onclick="s_toggleOdemeForm('${genelFormId}')" style="background:#f0ebe0;color:var(--subtext);border:none;border-radius:8px;padding:9px 14px;font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">İptal</button>
-    </div>
-  </div>`;
-
   const bakiyeRenk = bakiye >= 0 ? 'var(--leaf)' : 'var(--red)';
   const bakiyeStr = (bakiye < 0 ? '-' : '') + Math.abs(bakiye).toLocaleString('tr-TR') + ' ₺';
 
