@@ -104,6 +104,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .form-input, .form-select { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text); background: var(--bg); outline: none; -webkit-appearance: none; cursor: pointer; }
 
 .form-input:focus, .form-select:focus { border-color: var(--leaf); }
+.form-input[type="date"] { cursor: pointer; position: relative; }
+.form-input[type="date"]::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .form-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
 
@@ -175,9 +177,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
+  padding: 5px 12px;
   border-bottom: 1px solid #f0ebe0;
-  gap: 8px;
+  gap: 6px;
 }
 .masraf-tarih-badge {
   background: #eef8f0;
@@ -208,6 +210,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .form-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; display: block; }
 .form-input, .form-select { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text); background: var(--bg); outline: none; -webkit-appearance: none; cursor: pointer; }
 .form-input:focus, .form-select:focus { border-color: var(--leaf); }
+.form-input[type="date"] { cursor: pointer; position: relative; }
+.form-input[type="date"]::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
 .form-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
 
@@ -297,6 +301,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .form-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; display: block; }
 .form-input, .form-select { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text); background: var(--bg); outline: none; -webkit-appearance: none; cursor: pointer; }
 .form-input:focus, .form-select:focus { border-color: var(--leaf); }
+.form-input[type="date"] { cursor: pointer; position: relative; }
+.form-input[type="date"]::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
 .form-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
 
@@ -385,6 +391,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .form-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; display: block; }
 .form-input, .form-select { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text); background: var(--bg); outline: none; -webkit-appearance: none; cursor: pointer; }
 .form-input:focus, .form-select:focus { border-color: var(--leaf); }
+.form-input[type="date"] { cursor: pointer; position: relative; }
+.form-input[type="date"]::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
 .form-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
 
@@ -1629,11 +1637,12 @@ async function deleteMasraf(donemKey, mid) {
   showLoading('Siliniyor...');
   try {
     await ATAPI.delete('masraflar', mid);
+    hideLoading();
     const urunler = getUrunler();
     const urun = urunler.find(u => u.id === uCurrentUrunId);
     const donem = urun?.masraflar?.find(d => d.key === donemKey);
     if (donem) donem.items = donem.items.filter(m => m.id !== mid);
-    setUrunler(urunler); toast('Masraf silindi'); renderMasraflar();
+    setUrunler(urunler); toast('Masraf silindi ✓'); hideLoading(); renderMasraflarFor(uCurrentUrunId); renderStatsFor(uCurrentUrunId);
   } catch(e) { hideLoading(); toast('❌ Hata: ' + e.message); }
 }
 
@@ -1806,20 +1815,20 @@ function renderEkilişlerFor(id) {
   if (!el) return;
   if (!urun?.partiler?.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><p>Henüz parti eklenmedi</p></div>'; return; }
   el.innerHTML = urun.partiler.map(p => `
-    <div class="card" style="margin-bottom:10px">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer" onclick="toggleParti('${p.id}')">
-        <div style="flex:1">
-          <span style="font-weight:600;font-size:15px;color:var(--bark)">${p.ad}</span>
-          <span style="font-size:13px;color:var(--muted);margin-left:10px">${p.ekim ? fmtDate(p.ekim) : '—'}</span>
-          <span style="font-size:13px;color:var(--subtext);margin-left:10px">${p.fide ? p.fide+' adet' : '—'}</span>
-        </div>
-        <div style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
-          <button class="btn-sm btn-edit" onclick="editParti('${p.id}')">✎</button>
-          <button class="btn-sm btn-del" onclick="deleteParti('${p.id}')">✕</button>
-          <span style="color:var(--leaf);font-size:14px;font-weight:600" id="u-arrow-${p.id}">⋁</span>
-        </div>
+    <div style="display:flex;align-items:center;padding:5px 12px;border-bottom:1px solid #f0ebe0;gap:6px;cursor:pointer" onclick="toggleParti('${p.id}')">
+      <div style="flex:1;display:flex;align-items:center;gap:8px;overflow:hidden">
+        <span style="font-weight:600;font-size:13px;color:var(--bark);white-space:nowrap">${p.ad}</span>
+        <span style="font-size:12px;color:var(--muted)">${p.ekim ? fmtDate(p.ekim) : '—'}</span>
+        <span style="font-size:12px;color:var(--subtext)">${p.fide ? p.fide+' adet' : ''}</span>
       </div>
-      <div id="u-parti-detail-${p.id}" style="display:none;border-top:1px solid var(--border);padding:12px 14px">
+      <div style="display:flex;gap:4px;align-items:center;flex-shrink:0" onclick="event.stopPropagation()">
+        <button class="btn-sm btn-edit" onclick="editParti('${p.id}')">✎</button>
+        <button class="btn-sm btn-del" onclick="deleteParti('${p.id}')">✕</button>
+      </div>
+    </div>
+    <div id="u-parti-detail-${p.id}" style="display:none">
+      <div style="display:none">
+      <div id="u-parti-detail-${p.id}" style="display:none;border-top:1px solid var(--border);padding:8px 12px;background:#fafaf7">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div>
             <div class="detail-row" style="margin-bottom:8px">Ekim Tarihi<br><span>${fmtDate(p.ekim)}</span></div>
@@ -2282,13 +2291,10 @@ function renderDonemlerFor(aliciId) {
 
   el.innerHTML = alici.donemler.map(d => {
     const ek = encodeURIComponent(d.key);
-    return `<div class="card" style="margin-bottom:8px">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer" onclick="toggleDonem('${aliciId}','${ek}')">
-        <div style="display:flex;align-items:center;gap:6px;flex:1">
-          <span style="font-weight:600;font-size:14px;color:var(--text)">${d.key}</span>
-          <span id="h-donem-arrow-${aliciId}-${ek}" style="color:var(--leaf);font-size:15px;font-weight:600">⋁</span>
-        </div>
-        <div style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
+    return `<div style="margin-bottom:2px">
+      <div style="display:flex;align-items:center;padding:7px 12px;cursor:pointer;background:#f5f2eb;border-radius:4px;margin-bottom:2px" onclick="toggleDonem('${aliciId}','${ek}')">
+        <span style="font-weight:700;font-size:14px;color:var(--bark);flex:1">${d.key}</span>
+        <div style="display:flex;gap:4px;align-items:center" onclick="event.stopPropagation()">
           <button class="btn-sm btn-edit" onclick="editDonem('${ek}')">✎</button>
           <button class="btn-sm btn-del" onclick="deleteDonem('${ek}')">✕</button>
         </div>
@@ -2297,7 +2303,7 @@ function renderDonemlerFor(aliciId) {
         <div id="h-donem-ozet-${aliciId}-${ek}" style="margin-bottom:10px"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <span class="section-title">Tarihler</span>
-          <button class="btn-add" style="padding:6px 10px;font-size:12px" onclick="openTarihEkleFor('${aliciId}','${ek}')">+ Hasat Ekle</button>
+
         </div>
         <div id="h-tarih-list-${aliciId}-${ek}"></div>
       </div>
@@ -2368,29 +2374,17 @@ function renderTarihlerFor(aliciId, ek) {
 
   el.innerHTML = donem.tarihler.map(t => {
     const urunlerHTML = t.urunler.length ? t.urunler.map(u => `
-      <div class="urun-satir">
-        <span class="urun-ad">${u.urunAd}</span>
-        <span class="urun-miktar">${u.miktar} ${u.birim}</span>
-        <div style="display:flex;gap:4px">
-          <button class="btn-sm btn-edit" onclick="openHasatUrunDuzenleFor('${aliciId}','${ek}','${t.id}','${u.id}')">✎</button>
-          <button class="btn-sm btn-del" onclick="deleteHasatUrunFor('${aliciId}','${ek}','${t.id}','${u.id}')">✕</button>
-        </div>
-      </div>`).join('') : '<div style="font-size:13px;color:var(--muted);padding:6px 0">Ürün eklenmedi</div>';
+<span style="color:var(--leaf);font-weight:600">${u.urunAd}</span> <span style="color:var(--muted)">${u.miktar} ${u.birim}</span>`).join('') : '<div style="font-size:13px;color:var(--muted);padding:6px 0">Ürün eklenmedi</div>';
 
-    return `<div style="margin-bottom:8px;background:var(--bg);border-radius:8px;overflow:hidden">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer" onclick="toggleTarihFor('${aliciId}-${ek}-${t.id}')">
-        <div style="display:flex;align-items:center;gap:5px;flex:1">
-          <span style="font-weight:600;font-size:13px;color:var(--leaf)">${fmtDate(t.tarih)}</span>
-          <span id="h-tarih-arrow-${aliciId}-${ek}-${t.id}" style="color:var(--leaf);font-size:14px;font-weight:600">⋁</span>
-        </div>
-        <div style="display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
-          <button class="btn-sm btn-add" style="padding:4px 8px;font-size:11px" onclick="openHasatUrunEkleFor('${aliciId}','${ek}','${t.id}')">+ Ürün</button>
+    return `<div style="display:flex;align-items:center;padding:5px 12px;border-bottom:1px solid #f0ebe0;gap:6px">
+        <span class="masraf-tarih-badge">${fmtDate(t.tarih)}</span>
+        <div style="flex:1;font-size:13px;color:var(--text)">${urunlerHTML}</div>
+        <div style="display:flex;gap:4px;flex-shrink:0" onclick="event.stopPropagation()">
+          <button class="btn-sm btn-add" style="padding:3px 7px;font-size:11px" onclick="openHasatUrunEkleFor('${aliciId}','${ek}','${t.id}')">+</button>
           <button class="btn-sm btn-edit" onclick="editTarihFor('${aliciId}','${ek}','${t.id}')">✎</button>
           <button class="btn-sm btn-del" onclick="deleteTarihFor('${aliciId}','${ek}','${t.id}')">✕</button>
         </div>
-      </div>
-      <div id="h-tarih-body-${aliciId}-${ek}-${t.id}" style="display:none;padding:6px 12px 10px">${urunlerHTML}</div>
-    </div>`;
+      </div>`;
   }).join('');
 }
 
@@ -2641,6 +2635,17 @@ function h_openMasrafModal(donemKey, masrafId) {
     h_editingMasrafId = null;
     document.getElementById('masraf-modal-title').textContent = `Masraf Gir — ${donemKey}`;
   }
+  // Masraf tür select'ine localStorage'dan yerel türleri ekle
+  const _mturSel = document.getElementById('m-tur');
+  const _mevcutOptions = Array.from(_mturSel.options).map(o => o.value);
+  const _yerelTurler = JSON.parse(localStorage.getItem('masraf_turleri') || '[]');
+  _yerelTurler.forEach(t => {
+    if (!_mevcutOptions.includes(t)) {
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+      _mturSel.insertBefore(opt, _mturSel.lastElementChild);
+    }
+  });
   openModal('masraf-modal');
 }
 
@@ -2913,18 +2918,15 @@ function h_renderDonemler() {
         </div>
       </div>`;
     }).join('') : '<div style="padding:10px 16px;font-size:13px;color:var(--muted)">Masraf eklenmedi</div>';
-    return `<div class="card">
-      <div class="donem-row" onclick="h_toggleDonem('${ek}')">
-        <div style="display:flex;align-items:center;flex:1">
-          <span class="donem-name">${d.key}</span>
-          <span class="donem-arrow" id="d-arrow-${ek}">⋁</span>
-        </div>
-        <div style="display:flex;gap:6px" onclick="event.stopPropagation()">
+    return `<div style="margin-bottom:4px">
+      <div style="display:flex;align-items:center;padding:6px 12px;cursor:pointer;background:#f5f2eb;border-radius:4px" onclick="h_toggleDonem('${ek}')">
+        <span style="font-weight:700;font-size:14px;color:var(--bark);flex:1">${d.key}</span>
+        <div style="display:flex;gap:4px" onclick="event.stopPropagation()">
           <button class="btn-sm btn-edit" onclick="h_editDonem('${d.key}')">✎</button>
           <button class="btn-sm btn-del" onclick="h_deleteDonem('${d.key}')">✕</button>
         </div>
       </div>
-      <div class="donem-detail" id="d-detail-${ek}">
+      <div class="donem-detail" id="d-detail-${ek}" style="padding:0">
         <div class="donem-ozet" style="grid-template-columns:1.3fr 1fr 1fr 1fr">
           <div class="dozet-item" style="text-align:left">
             <div class="dozet-label">Toplam</div>
@@ -2935,7 +2937,7 @@ function h_renderDonemler() {
           <div class="dozet-item"><div class="dozet-label">Genel</div><div class="dozet-val" style="color:#888">${genel > 0 ? genel.toLocaleString('tr-TR')+' ₺' : '—'}</div></div>
         </div>
         <div style="padding:8px 16px;border-top:1px solid var(--border)">
-          <button class="btn-add" style="width:100%;justify-content:center" onclick="h_openMasrafModal('${d.key}',null)">+ Masraf Gir</button>
+          
         </div>
         ${masrafHTML}
       </div>
@@ -3278,9 +3280,9 @@ function b_renderKisiler() {
         const turLabel2 = {fide:'Fide', isci:'İşçilik', genel:'Genel'};
         const turStr = b.tur ? ` <span class="tur-${b.tur}">${turLabel2[b.tur]||''}</span>` : '';
         const acikStr = b.acik ? ' ' + b.acik : '';
-        return `<div class="borc-satir ${b.odendi ? 'odendi-satir' : ''}">
+        return `<div class="borc-satir ${b.odendi ? 'odendi-satir' : ''}" style="padding:4px 12px">
           <div class="borc-info" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;font-size:13px">
-            <span style="font-weight:700">${fmtDateShort(b.tarih)}&nbsp;&nbsp;${tutarStr}</span>${turStr}<span>${acikStr}</span>
+            <span class="masraf-tarih-badge">${fmtDateShort(b.tarih)}</span>&nbsp;<span style="font-weight:700">${tutarStr}</span>${turStr}<span>${acikStr}</span>
           </div>
           <div class="borc-actions" style="flex-shrink:0">
             <div class="odendi-btn ${b.odendi ? 'checked' : ''}" onclick="b_toggleOdendi('${k.id}','${d.key}','${b.id}')" title="Ödendi">${b.odendi ? '✓' : ''}</div>
@@ -3289,11 +3291,11 @@ function b_renderKisiler() {
           </div>
         </div>`;
       }).join('') : '<div style="padding:10px 14px;font-size:13px;color:var(--muted)">Borç eklenmedi</div>';
-      return `<div class="donem-card">
-        <div class="donem-row" onclick="b_toggleDonem('${k.id}','${ek}')">
+      return `<div style="margin-bottom:3px">
+        <div style="display:flex;align-items:center;padding:6px 12px;cursor:pointer;background:#f5f2eb;border-radius:4px" onclick="b_toggleDonem('${k.id}','${ek}')">
           <div style="display:flex;align-items:center;flex:1">
-            <span class="donem-name">${d.key}</span>
-            <span class="donem-arrow" id="d-arrow-${k.id}-${ek}">⋁</span>
+            <span style="font-weight:700;font-size:13px;color:var(--bark)">${d.key}</span>
+            <span style="color:var(--leaf);font-size:13px;margin-left:6px" id="d-arrow-${k.id}-${ek}">⋁</span>
           </div>
           <div style="display:flex;gap:6px" onclick="event.stopPropagation()">
             <button class="btn-sm btn-edit" onclick="b_editDonem('${k.id}','${d.key}')">✎</button>
@@ -3305,7 +3307,7 @@ function b_renderKisiler() {
             <span class="donem-toplam-val">${donemToplam > 0 ? donemToplam.toLocaleString('tr-TR')+' ₺' : '—'}</span>
           </div>
           <div style="padding:8px 14px;border-bottom:1px solid var(--border)">
-            <button class="btn-add" style="width:100%;justify-content:center" onclick="b_openBorcModal('${k.id}','${d.key}',null)">+ Borç Ekle</button>
+
           </div>
           ${borclarHTML}
         </div>
@@ -3734,13 +3736,13 @@ function s_renderAlicilar() {
           ? `<div class="hesap-str">${s.netMiktar} ${kayitBirim} × ${s.fiyat} ₺ = <strong>${fmtPara(parseFloat(s.netMiktar)*parseFloat(s.fiyat))}</strong></div>`
           : '';
 
-        return `<div class="sevk-satir">
-          <div class="sevk-ozet" onclick="s_toggleSevkForm('${t.id}')">
-            <span class="sevk-tarih">${fmtDateShort(t.tarih)}</span>
-            <div class="sevk-urunler">${urunPills}</div>
-            <span class="sevk-miktar">${gonMiktar} ${hasatBirim} → ${netGoster}</span>
-            <span class="sevk-tutar">${tutar > 0 ? fmtPara(tutar) : '—'}</span>
-            <span class="sevk-arrow" id="sa-${t.id}">⋁</span>
+        return `<div class="sevk-satir" style="padding:4px 0;border-bottom:1px solid #f0ebe0">
+          <div class="sevk-ozet" style="padding:3px 0;gap:6px" onclick="s_toggleSevkForm('${t.id}')">
+            <span class="masraf-tarih-badge">${fmtDateShort(t.tarih)}</span>
+            <div class="sevk-urunler" style="flex:1">${urunPills}</div>
+            <span style="font-size:12px;color:var(--muted)">${gonMiktar} ${hasatBirim} → ${netGoster}</span>
+            <span style="font-weight:700;font-size:13px;color:var(--bark)">${tutar > 0 ? fmtPara(tutar) : '—'}</span>
+            <span style="color:var(--leaf);font-size:12px" id="sa-${t.id}">⋁</span>
           </div>
           <div class="sevk-form" id="sf-${t.id}">
             <div class="form-row">
@@ -3769,10 +3771,10 @@ function s_renderAlicilar() {
         </div>`;
       }).join('');
 
-      return `<div class="donem-block">
-        <div class="donem-header" onclick="s_toggleDonem('${a.id}','${ek}')">
-          <div class="donem-key">${d.key} <span id="da-${a.id}-${ek}">⋁</span></div>
-          <span class="donem-toplam">${donemToplam > 0 ? fmtPara(donemToplam) : '—'}</span>
+      return `<div style="margin-bottom:3px">
+        <div style="display:flex;align-items:center;padding:6px 12px;cursor:pointer;background:#f5f2eb;border-radius:4px" onclick="s_toggleDonem('${a.id}','${ek}')">
+          <span style="font-weight:700;font-size:14px;color:var(--bark);flex:1">${d.key} <span id="da-${a.id}-${ek}" style="color:var(--leaf)">⋁</span></span>
+          <span style="font-weight:700;font-size:13px;color:var(--bark)">${donemToplam > 0 ? fmtPara(donemToplam) : '—'}</span>
         </div>
         <div class="donem-body" id="dd-${a.id}-${ek}">
           <div class="donem-ozet" style="flex-direction:column;gap:6px">
@@ -3890,6 +3892,33 @@ function s_renderOdemeler(aliciId) {
   const toplamSatis = Object.values(donemSatis).reduce((s,v) => s+v, 0);
   const toplamOdeme = aliciOdemeler.reduce((s,o) => s+o.tutar, 0);
   const bakiye = toplamSatis - toplamOdeme;
+  
+  // Üstte tek ödeme ekleme formu
+  const genelEk = encodeURIComponent('genel_' + aliciId);
+  const genelFormId = 'of-' + genelEk;
+  const odemeEkleBtn = `<div style="margin-bottom:10px">
+    <button onclick="s_toggleOdemeForm('${genelFormId}')" class="btn-add">+ Ödeme Ekle</button>
+  </div>
+  <div id="${genelFormId}" style="display:none;background:#f5f0e8;border-radius:8px;padding:10px;margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Tutar (₺)</label>
+        <input class="form-input" id="od-tutar-${genelEk}" type="number" placeholder="0" style="font-size:13px;padding:7px 10px">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Tarih</label>
+        <input class="form-input" id="od-tarih-${genelEk}" type="date" style="font-size:13px;padding:7px 10px">
+      </div>
+    </div>
+    <div style="margin-bottom:8px">
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Açıklama — opsiyonel</label>
+      <input class="form-input" id="od-acik-${genelEk}" type="text" placeholder="kısa açıklama" maxlength="30" style="font-size:13px;padding:7px 10px">
+    </div>
+    <div style="display:flex;gap:6px">
+      <button onclick="s_odemeEkleDonem('${aliciId}','genel','${genelEk}')" class="btn-add" style="justify-content:center">✓ Kaydet</button>
+      <button onclick="s_toggleOdemeForm('${genelFormId}')" style="background:#f0ebe0;color:var(--subtext);border:none;border-radius:8px;padding:9px 14px;font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">İptal</button>
+    </div>
+  </div>`;
 
   let satirlar = '';
 
@@ -3899,23 +3928,20 @@ function s_renderOdemeler(aliciId) {
     const formId = 'of-' + ek;
     const donemOdemeleri = aliciOdemeler.filter(o => o.donemKey === key);
 
-    satirlar += `<div style="display:grid;grid-template-columns:1fr 110px 110px;align-items:center;padding:5px 0;border-bottom:1px solid #f5f0e8;font-size:13px">
-      <span style="color:var(--text)">${key} Satışları</span>
-      <span style="color:var(--leaf);text-align:right;white-space:nowrap;padding-right:80px">+${parseFloat(tutar).toLocaleString('tr-TR')} ₺</span>
-      <span></span>
+    satirlar += `<div style="display:flex;align-items:center;padding:6px 12px;background:#f5f2eb;border-radius:4px;margin:4px 0">
+      <span style="font-weight:700;font-size:13px;color:var(--bark);flex:1">${key}</span>
+      <span style="font-weight:700;font-size:13px;color:var(--leaf)">+${parseFloat(tutar).toLocaleString('tr-TR')} ₺</span>
     </div>`;
 
     donemOdemeleri.forEach(o => {
       const ts = o.tarih ? (() => { const [y,m,d] = o.tarih.split('-'); return parseInt(d)+'.'+parseInt(m); })() : '';
       const ac = o.acik ? '  ' + o.acik : '';
-      satirlar += `<div style="display:grid;grid-template-columns:1fr 110px 110px;align-items:center;padding:5px 0;border-bottom:1px solid #f5f0e8;font-size:13px">
-        <div style="display:flex;align-items:center;gap:6px;padding-left:80px">
-          <span style="color:var(--subtext)">${ts}${ac}</span>
-          <button onclick="s_odemeAcikDuzenle('${aliciId}','${o.id}')" style="background:none;border:1px solid #e0d5c5;border-radius:4px;color:var(--leaf);cursor:pointer;font-size:11px;padding:1px 5px">✎</button>
-          <button onclick="s_odemeAcikSil('${aliciId}','${o.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;padding:0">✕</button>
-        </div>
-        <span></span>
-        <span style="color:var(--red);text-align:right;white-space:nowrap;margin-right:-80px">-${parseFloat(o.tutar).toLocaleString('tr-TR')} ₺</span>
+      satirlar += `<div style="display:flex;align-items:center;padding:4px 12px;border-bottom:1px solid #f5f0e8;font-size:13px;gap:6px">
+        <span class="masraf-tarih-badge">${ts||'—'}</span>
+        <span style="color:var(--subtext);flex:1">${ac||'ödeme'}</span>
+        <button onclick="s_odemeAcikDuzenle('${aliciId}','${o.id}')" style="background:none;border:1px solid #e0d5c5;border-radius:4px;color:var(--leaf);cursor:pointer;font-size:11px;padding:1px 5px">✎</button>
+        <button onclick="s_odemeAcikSil('${aliciId}','${o.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;padding:0">✕</button>
+        <span style="font-weight:700;color:var(--red);white-space:nowrap">-${parseFloat(o.tutar).toLocaleString('tr-TR')} ₺</span>
       </div>`;
     });
 
@@ -3991,6 +4017,7 @@ function s_renderOdemeler(aliciId) {
   const bakiyeStr = (bakiye < 0 ? '-' : '') + Math.abs(bakiye).toLocaleString('tr-TR') + ' ₺';
 
   el.innerHTML = `<div style="padding-bottom:14px">
+    ${odemeEkleBtn}
     ${satirlar}
     <div class="bakiye-satir">
       <span class="bakiye-label">Bakiye</span>
