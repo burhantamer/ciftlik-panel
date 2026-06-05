@@ -73,6 +73,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .masraf-item:last-child { border-bottom: none; }
 
 .tur-fide { background:#6aab7d;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; } .tur-isci { background:#c8a84b;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; } .tur-genel { background:#888;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; }
+.tur-custom { border-radius:3px;padding:1px 5px;font-size:11px;color:#fff; }
 
 /* DÖNEM */
 .donem-block { margin-bottom: 14px; }
@@ -177,6 +178,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   padding: 10px 16px;
   border-bottom: 1px solid #f0ebe0;
   gap: 8px;
+}
+.masraf-tarih-badge {
+  background: #eef8f0;
+  color: #3d6b45;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .masraf-satir:last-child { border-bottom: none; }
 .masraf-info { flex: 1; font-size: 13px; color: var(--text); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -553,15 +564,15 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
         <div>
           <div class="form-group">
             <label class="form-label">Ekim Tarihi</label>
-            <input class="form-input" id="u-parti-ekim" type="text" placeholder="GG/AA/YYYY" maxlength="10">
+            <input class="form-input" id="u-parti-ekim" type="date">
           </div>
           <div class="form-group">
             <label class="form-label">Hasat Başlangıç</label>
-            <input class="form-input" id="u-parti-hasat-bas" type="text" placeholder="GG/AA/YYYY" maxlength="10">
+            <input class="form-input" id="u-parti-hasat-bas" type="date">
           </div>
           <div class="form-group">
             <label class="form-label">Hasat Bitiş</label>
-            <input class="form-input" id="u-parti-hasat-bit" type="text" placeholder="GG/AA/YYYY" maxlength="10">
+            <input class="form-input" id="u-parti-hasat-bit" type="date">
           </div>
         </div>
         <div>
@@ -588,7 +599,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
       <div class="modal-title" id="u-masraf-modal-title">Masraf Ekle</div>
       <div class="form-group">
         <label class="form-label">Tarih</label>
-        <input class="form-input" id="u-masraf-tarih" type="text" placeholder="GG/AA/YYYY" maxlength="10">
+        <input class="form-input" id="u-masraf-tarih" type="date">
       </div>
       <div class="form-group">
         <label class="form-label">Masraf Türü</label>
@@ -688,7 +699,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
       <div class="modal-title" id="h-tarih-modal-title">Tarih Ekle</div>
       <div class="form-group">
         <label class="form-label">Tarih</label>
-        <input class="form-input" id="h-tarih-input" type="text" placeholder="GG/AA/YYYY" maxlength="10">
+        <input class="form-input" id="h-tarih-input" type="date">
       </div>
       <div class="form-btns">
         <button class="btn-primary" onclick="saveTarih()">Tarih Oluştur</button>
@@ -794,7 +805,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
     </div>
     <div class="form-group">
       <label class="form-label">Tarih — boş bırakılabilir</label>
-      <input class="form-input" id="m-tarih" type="text" placeholder="GG/AA/YYYY" maxlength="10">
+      <input class="form-input" id="m-tarih" type="date">
     </div>
     <div class="form-group">
       <label class="form-label">Açıklama (max 20 karakter)</label>
@@ -862,7 +873,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
     </div>
     <div class="form-group">
       <label class="form-label">Tarih — boş bırakılabilir</label>
-      <input class="form-input" id="m-tarih" type="text" placeholder="GG/AA/YYYY" maxlength="10">
+      <input class="form-input" id="m-tarih" type="date">
     </div>
     <div class="form-group">
       <label class="form-label">Açıklama (max 20 karakter)</label>
@@ -971,7 +982,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
     </div>
     <div class="form-group">
       <label class="form-label">Tarih — boş bırakılabilir</label>
-      <input class="form-input" id="b-b-tarih" type="text" placeholder="GG/AA/YYYY" maxlength="10">
+      <input class="form-input" id="b-b-tarih" type="date">
     </div>
     <div class="form-btns">
       <button class="btn-primary" onclick="b_saveBorc()">Kaydet</button>
@@ -1040,7 +1051,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
     </div>
     <div class="form-group">
       <label class="form-label">Tarih — boş bırakılabilir</label>
-      <input class="form-input" id="b-b-tarih" type="text" placeholder="GG/AA/YYYY" maxlength="10">
+      <input class="form-input" id="b-b-tarih" type="date">
     </div>
     <div class="form-btns">
       <button class="btn-primary" onclick="b_saveBorc()">Kaydet</button>
@@ -1067,7 +1078,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
     </div>
     <div style="margin-bottom:14px">
       <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#6a9478;display:block;margin-bottom:6px">Tarih</label>
-      <input id="od-edit-tarih" type="text" placeholder="GG/AA/YYYY" maxlength="10" class="form-input">
+      <input id="od-edit-tarih" type="date" class="form-input">
     </div>
     <div style="margin-bottom:20px">
       <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#6a9478;display:block;margin-bottom:6px">Açıklama — opsiyonel</label>
@@ -1297,6 +1308,18 @@ async function syncFromAirtable() {
     });
     setUrunler(urunler);
     setAlicilar(alicilar);
+
+    // Hasat urunlerini de kaydet (satış geliri hesabı için)
+    const hasatUrunMap = {};
+    hasatRecs.forEach(r => {
+      if (r.fields.tarih_id && r.fields.urun_id) {
+        hasatUrunMap[r.id] = { id: r.id, tarih_id: r.fields.tarih_id, urun_id: r.fields.urun_id };
+      }
+    });
+    DB.set('hasat_urunler', hasatUrunMap);
+
+    // Satış gelirlerini ürünlere yaz
+    s_guncelleUrunGeliri();
 
     hideLoading();
     toast('✓ Veriler güncellendi');
@@ -2621,17 +2644,18 @@ function h_openMasrafModal(donemKey, masrafId) {
   openModal('masraf-modal');
 }
 
-async function h_saveMasraf(borcOlarakEkle) {
+async async function h_saveMasraf(borcOlarakEkle) {
   const tutar = document.getElementById('m-tutar').value;
   const tur = document.getElementById('m-tur').value;
   const tarih = document.getElementById('m-tarih').value;
   const acik = document.getElementById('m-acik').value.trim();
   if (!tur) { toast('Harcama türü seçiniz'); return; }
-  if (!tarih) { toast('Tarih giriniz'); return; }
+  // tarih boş olabilir - opsiyonel
 
   // Tarihten dönem otomatik türet
   const AYLAR_H2 = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
-  const tarihH2ISO = tarihToISO(tarih) || tarih;
+  const tarihH2ISO = tarihToISO(tarih) || tarih || null;
+  if (!tarihH2ISO) { toast('Tarih giriniz'); return; }
   const [hyil2, hay2] = tarihH2ISO.split('-');
   const autoDonemKey = AYLAR_H2[parseInt(hay2)-1] + ' ' + hyil2;
   h_currentDonemKey = autoDonemKey;
@@ -2855,7 +2879,9 @@ function h_renderDonemler() {
     el.innerHTML = '<div class="empty"><p>Henüz dönem eklenmedi</p></div>';
     return;
   }
-  const turLabel = { fide:'Fide', isci:'İşçilik', genel:'Genel' };
+  const _turLabelBase = { fide:'Fide', isci:'İşçilik', genel:'Genel' };
+    const _yerelTurlerL = JSON.parse(localStorage.getItem('masraf_turleri')||'[]');
+    const turLabel = {..._turLabelBase, ..._yerelTurlerL.reduce((o,t)=>({...o,[t]:t.charAt(0).toUpperCase()+t.slice(1)}),{})};
 
   el.innerHTML = donemler.map(d => {
     const ek = encodeURIComponent(d.key);
@@ -2868,12 +2894,18 @@ function h_renderDonemler() {
     });
 
     const masrafHTML = d.masraflar.length ? d.masraflar.map(m => {
-      const turClass = 'tur-' + m.tur;
+      const _stdTurler = ['fide','isci','genel'];
+    const _customRenkler = ['#7b6cb0','#c0614e','#4a90d9','#d4874a','#5a9e8f','#a05cb0','#7a8c3a'];
+    const _yerelTurler = JSON.parse(localStorage.getItem('masraf_turleri')||'[]');
+    const _turIdx = _yerelTurler.indexOf(m.tur);
+    const turClass = _stdTurler.includes(m.tur) ? 'tur-' + m.tur : 'tur-custom';
+    const turStyle = _stdTurler.includes(m.tur) ? '' : `style="background:${_customRenkler[_turIdx % _customRenkler.length] || '#888'}"`;
       const tutarStr = m.tutar ? parseFloat(m.tutar).toLocaleString('tr-TR') + ' ₺' : '? ₺';
       const acikStr = m.acik ? ' ' + m.acik : '';
       return `<div class="masraf-satir">
+        <span class="masraf-tarih-badge">${fmtDateShort(m.tarih)}</span>
         <div class="masraf-info" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;font-size:13px">
-          <span style="font-weight:700">${fmtDateShort(m.tarih)}&nbsp;&nbsp;${tutarStr}</span> <span class="${turClass}">${turLabel[m.tur]}</span><span>${acikStr}</span>
+          <span style="font-weight:700">${tutarStr}</span> <span class="${turClass}" ${turStyle}>${turLabel[m.tur]||m.tur}</span><span>${acikStr}</span>
         </div>
         <div class="masraf-actions" style="flex-shrink:0">
           <button class="btn-sm btn-edit" onclick="h_openMasrafModal('${d.key}','${m.id}')">✎</button>
@@ -3118,7 +3150,7 @@ async function b_saveBorc() {
   const tutar = document.getElementById('b-b-tutar').value;
   const acik = document.getElementById('b-b-acik').value.trim();
   const tarih = document.getElementById('b-b-tarih').value;
-  if (!tarih) { toast('Tarih giriniz'); return; }
+  // tarih boş olabilir - opsiyonel
 
   // Tarihten dönem otomatik türet
   const AYLAR_B = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
@@ -3450,23 +3482,51 @@ function fmtPara(n) {
 }
 
 function s_guncelleUrunGeliri() {
-  // Ürünler sayfası satış geliri - sadece localStorage güncelle, Airtable'a yazma
-  const alicilar = getAlicilar();
-  const satislar = s_getSatislar();
+  // Ürünler sayfası satış geliri - satislar tablosundan urun bazlı gelir hesapla
+  const satislarArr = Object.values(s_getSatislar());
+  const hasatArr = Object.values(DB.get('hasat_urunler') || {});
   const urunler = getUrunler();
   const gelirMap = {};
-  alicilar.forEach(a => (a.donemler||[]).forEach(d => (d.tarihler||[]).forEach(t => {
-    const s = satislar[t.id];
-    if (!s?.netMiktar || !s?.fiyat) return;
-    const tutar = parseFloat(s.netMiktar) * parseFloat(s.fiyat);
-    (t.urunler||[]).forEach(u => {
-      gelirMap[u.urunId] = (gelirMap[u.urunId]||0) + tutar;
+
+  // Hasat kayıtlarından urun_id → tarih_id eşlemesi kur
+  const tarihUrunMap = {}; // tarih_id → [urunId, ...]
+  hasatArr.forEach(h => {
+    if (h.tarih_id && h.urun_id) {
+      if (!tarihUrunMap[h.tarih_id]) tarihUrunMap[h.tarih_id] = [];
+      tarihUrunMap[h.tarih_id].push(h.urun_id);
+    }
+  });
+
+  // Her satış kaydı için geliri hesapla
+  satislarArr.forEach(s => {
+    if (!s.tarih_id || !s.netMiktar || !s.fiyat) return;
+    const tutar = parseFloat(String(s.netMiktar)) * parseFloat(String(s.fiyat));
+    if (isNaN(tutar)) return;
+    const urunIds = tarihUrunMap[s.tarih_id] || [];
+    urunIds.forEach(uid => {
+      gelirMap[uid] = (gelirMap[uid] || 0) + tutar;
     });
-  })));
-  // Sadece toplamGelir alanını güncelle, diğer alanları etkileme
+  });
+
+  // Gelir bulunamadıysa alıcı-dönem-tarih üzerinden dene
+  if (Object.keys(gelirMap).length === 0) {
+    const alicilar = getAlicilar();
+    const satislarObj = s_getSatislar();
+    alicilar.forEach(a => (a.donemler||[]).forEach(d => (d.tarihler||[]).forEach(t => {
+      // tarih_id formatında ara
+      const tid = t.id || t.tarih_id;
+      const s = satislarObj[tid];
+      if (!s?.netMiktar || !s?.fiyat) return;
+      const tutar = parseFloat(String(s.netMiktar)) * parseFloat(String(s.fiyat));
+      if (isNaN(tutar)) return;
+      (t.urunler||[]).forEach(u => {
+        gelirMap[u.urunId] = (gelirMap[u.urunId]||0) + tutar;
+      });
+    })));
+  }
+
   urunler.forEach(u => { u.toplamGelir = Math.round(gelirMap[u.id]||0); });
   DB.set('urunler', urunler);
-  // Açık ürün varsa istatistiklerini güncelle
   if (uCurrentUrunId) renderStatsFor(uCurrentUrunId);
 }
 
@@ -3870,7 +3930,7 @@ function s_renderOdemeler(aliciId) {
         </div>
         <div>
           <label style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);display:block;margin-bottom:4px">Tarih</label>
-          <input class="form-input" id="od-tarih-${ek}" type="text" placeholder="GG/AA/YYYY" maxlength="10" style="font-size:13px;padding:7px 10px">
+          <input class="form-input" id="od-tarih-${ek}" type="date" style="font-size:13px;padding:7px 10px">
         </div>
       </div>
       <div style="margin-bottom:8px">
@@ -3914,7 +3974,7 @@ function s_renderOdemeler(aliciId) {
       </div>
       <div>
         <label style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);display:block;margin-bottom:4px">Tarih</label>
-        <input class="form-input" id="od-tarih-${genelEk}" type="text" placeholder="GG/AA/YYYY" maxlength="10" style="font-size:13px;padding:7px 10px">
+        <input class="form-input" id="od-tarih-${genelEk}" type="date" style="font-size:13px;padding:7px 10px">
       </div>
     </div>
     <div style="margin-bottom:8px">
@@ -4211,40 +4271,12 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 
 // ══════════════════════ TARİH YARDIMCI FONKSİYONLARI ══════════════════════
 
-// GG/AA/YYYY → YYYY-MM-DD (Airtable için)
+// tarih zaten type=date ile YYYY-MM-DD formatında geliyor
 function tarihToISO(str) {
   if (!str) return null;
-  // Zaten ISO formatındaysa direkt döndür
   if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
-  const parts = str.split('/');
-  if (parts.length !== 3) return null;
-  const [g, a, y] = parts;
-  if (!g || !a || !y || y.length !== 4) return null;
-  return `${y}-${a.padStart(2,'0')}-${g.padStart(2,'0')}`;
+  return null;
 }
-
-// YYYY-MM-DD → GG/AA/YYYY (gösterim için)
-function tarihToGoster(iso) {
-  if (!iso) return '—';
-  const [y, m, d] = iso.split('-');
-  return `${d}/${m}/${y}`;
-}
-
-// Input'a otomatik slash ekle (GG/AA/YYYY formatı için)
-function tarihInputOtoFormat(e) {
-  const input = e.target;
-  let val = input.value.replace(/[^\d]/g, '');
-  if (val.length >= 3 && val.length <= 4) val = val.slice(0,2) + '/' + val.slice(2);
-  else if (val.length >= 5) val = val.slice(0,2) + '/' + val.slice(2,4) + '/' + val.slice(4,8);
-  input.value = val;
-}
-
-// Tüm tarih inputlarına otomatik format ekle
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('input[placeholder="GG/AA/YYYY"]').forEach(input => {
-    input.addEventListener('input', tarihInputOtoFormat);
-  });
-});
 
 // ══════════════════════ SÜRÜKLE-BIRAK SIRALAMA ══════════════════════
 
