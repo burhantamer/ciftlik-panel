@@ -72,7 +72,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .masraf-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .masraf-item:last-child { border-bottom: none; }
 
-.tur-fide { background:#6aab7d;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; } .tur-isci { background:#c8a84b;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; } .tur-genel { background:#888;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; }
+.tur-fide { background:#6aab7d;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; } .tur-isci { background:#c8a84b;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; } .tur-genel { background:#888;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; } .tur-gubre { background:#7a6b3a;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; }
 .tur-custom { border-radius:3px;padding:1px 5px;font-size:11px;color:#fff; }
 
 /* DÖNEM */
@@ -196,7 +196,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .masraf-info .tutar { font-weight: 700; }
 .masraf-info .tur-fide { background:#6aab7d;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; }
 .masraf-info .tur-isci { background:#c8a84b;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; }
-.masraf-info .tur-genel { background:#888;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; }
+.masraf-info .tur-genel { background:#888;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; } .tur-gubre { background:#7a6b3a;color:#fff;border-radius:3px;padding:1px 5px;font-size:11px; }
 .masraf-actions { display: flex; gap: 4px; flex-shrink: 0; }
 
 /* MODAL */
@@ -547,7 +547,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
         <input class="form-input" id="u-urun-ad" placeholder="örn. Kıvırcık Marul">
       </div>
       <div class="form-group">
-        <label class="form-label">Birim (Satış Şekli)</label>
+        <label class="form-label">Birim (Hasat Şekli)</label>
         <select class="form-select" id="u-urun-birim">
           <option value="kg">kg</option><option value="adet">adet</option>
         </select>
@@ -611,17 +611,20 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
       </div>
       <div class="form-group">
         <label class="form-label">Masraf Türü</label>
-        <select class="form-select" id="u-masraf-tur" onchange="u_masrafTurDegisti(this)">
+        <select class="form-select" id="u-masraf-tur">
           <option value="fide">Fide</option>
           <option value="isci">İşçilik</option>
           <option value="genel">Genel</option>
-          <option value="__yeni__">── + Yeni masraf çeşidi ekle ──</option>
+          <option value="gubre">Gübre</option>
         </select>
       </div>
-      <div id="u-yeni-tur-alan" style="display:none" class="form-group">
-        <label class="form-label">Yeni Masraf Çeşidi Adı</label>
-        <input class="form-input" id="u-yeni-tur-ad" placeholder="örn. Sulama, İlaçlama...">
-        <button onclick="u_yeniTurKaydet()" style="margin-top:8px;background:var(--leaf);color:white;border:none;border-radius:8px;padding:8px 14px;font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">+ Ekle</button>
+      <button onclick="u_turYonetimToggle()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:2px 0;text-decoration:underline">+ Yeni masraf çeşidi ekle</button>
+      <div id="u-tur-yonetim-panel" style="display:none;margin-top:6px;background:#f5f2eb;border-radius:6px;padding:8px">
+        <div id="u-tur-yonetim"></div>
+        <div style="display:flex;gap:4px;margin-top:6px">
+          <input class="form-input" id="u-yeni-tur-ad" placeholder="Yeni tür adı..." style="font-size:12px;padding:5px 8px">
+          <button onclick="u_yeniTurKaydet()" style="background:var(--leaf);color:white;border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;white-space:nowrap">+ Ekle</button>
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Tutar (₺) — boş bırakılabilir</label>
@@ -839,13 +842,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
         <option value="fide">Fide</option>
         <option value="isci">İşçilik</option>
         <option value="genel">Genel</option>
-        <option value="__yeni__">── + Yeni masraf çeşidi ekle ──</option>
+        <option value="gubre">Gübre</option>
       </select>
     </div>
-    <div id="h-yeni-tur-alan" style="display:none" class="form-group">
-      <label class="form-label">Yeni Masraf Çeşidi Adı</label>
-      <input class="form-input" id="h-yeni-tur-ad" placeholder="örn. Sulama, İlaçlama...">
-      <button onclick="h_yeniTurKaydet()" style="margin-top:8px;background:var(--leaf);color:white;border:none;border-radius:8px;padding:8px 14px;font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">+ Ekle</button>
+    <button onclick="h_turYonetimToggle()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:2px 0;text-decoration:underline">+ Yeni masraf çeşidi ekle</button>
+    <div id="h-tur-yonetim-panel" style="display:none;margin-top:6px;background:#f5f2eb;border-radius:6px;padding:8px">
+      <div id="h-tur-yonetim"></div>
+      <div style="display:flex;gap:4px;margin-top:6px">
+        <input class="form-input" id="h-yeni-tur-ad" placeholder="Yeni tür adı..." style="font-size:12px;padding:5px 8px">
+        <button onclick="h_yeniTurKaydet()" style="background:var(--leaf);color:white;border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;white-space:nowrap">+ Ekle</button>
+      </div>
     </div>
     <div class="form-group">
       <label class="form-label">Tarih — boş bırakılabilir</label>
@@ -907,13 +913,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
         <option value="fide">Fide</option>
         <option value="isci">İşçilik</option>
         <option value="genel">Genel</option>
-        <option value="__yeni__">── + Yeni masraf çeşidi ekle ──</option>
+        <option value="gubre">Gübre</option>
       </select>
     </div>
-    <div id="h-yeni-tur-alan" style="display:none" class="form-group">
-      <label class="form-label">Yeni Masraf Çeşidi Adı</label>
-      <input class="form-input" id="h-yeni-tur-ad" placeholder="örn. Sulama, İlaçlama...">
-      <button onclick="h_yeniTurKaydet()" style="margin-top:8px;background:var(--leaf);color:white;border:none;border-radius:8px;padding:8px 14px;font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">+ Ekle</button>
+    <button onclick="h_turYonetimToggle()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:2px 0;text-decoration:underline">+ Yeni masraf çeşidi ekle</button>
+    <div id="h-tur-yonetim-panel" style="display:none;margin-top:6px;background:#f5f2eb;border-radius:6px;padding:8px">
+      <div id="h-tur-yonetim"></div>
+      <div style="display:flex;gap:4px;margin-top:6px">
+        <input class="form-input" id="h-yeni-tur-ad" placeholder="Yeni tür adı..." style="font-size:12px;padding:5px 8px">
+        <button onclick="h_yeniTurKaydet()" style="background:var(--leaf);color:white;border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;white-space:nowrap">+ Ekle</button>
+      </div>
     </div>
     <div class="form-group">
       <label class="form-label">Tarih — boş bırakılabilir</label>
@@ -1352,6 +1361,22 @@ async function syncFromAirtable() {
     });
     setUrunler(urunler);
     setAlicilar(alicilar);
+
+    // Satış verilerini Airtable'dan çek ve satislar_v3'e yaz
+    const satisRecs = await ATAPI_S.list('satislar');
+    const yeniSatislar = {};
+    satisRecs.forEach(r => {
+      const key = r.fields.satir_id || r.fields.tarih_id;
+      if (key) {
+        yeniSatislar[key] = {
+          id: r.id,
+          netMiktar: r.fields.net_miktar,
+          birimSec: r.fields.birim,
+          fiyat: r.fields.fiyat
+        };
+      }
+    });
+    DB.set('satislar_v3', yeniSatislar);
 
     // Hasat urunlerini de kaydet (satış geliri hesabı için)
     const hasatUrunMap = {};
@@ -1825,6 +1850,8 @@ function openUrunMasrafModal(urunId) {
   document.getElementById('u-masraf-tur').selectedIndex = 0;
   document.getElementById('u-masraf-tutar').value = '';
   document.getElementById('u-masraf-acik').value = '';
+  masrafTurDropdownDoldur('u-masraf-tur');
+  u_masrafTurListesiGuncelle();
   openModal('u-masraf-modal');
 }
 
@@ -1906,11 +1933,27 @@ function renderMasraflarFor(id) {
   // Tarihe göre sırala
   allItems.sort((a,b) => (a.tarih||'').localeCompare(b.tarih||''));
   const ekstraTurler = JSON.parse(localStorage.getItem('masraf_turleri') || '[]');
-  const tL = { fide:'Fide', isci:'İşçilik', genel:'Genel', ...Object.fromEntries(ekstraTurler.map(t=>[t,t])) };
+  
+  // Masraf türü toplamları hesapla
+  const turToplamlar = {};
+  allItems.forEach(m => {
+    const tur = m.tur || 'genel';
+    turToplamlar[tur] = (turToplamlar[tur] || 0) + (parseFloat(m.tutar) || 0);
+  });
+  const _stdT2 = ['fide','isci','genel','gubre'];
+  const _renkler2 = ['#7b6cb0','#c0614e','#4a90d9','#d4874a','#5a9e8f','#a05cb0','#7a8c3a'];
+  const _turIsimler = { fide:'Fide', isci:'İşçilik', genel:'Genel', gubre:'Gübre', ...ekstraTurler.reduce((o,t)=>({...o,[t]:t.charAt(0).toUpperCase()+t.slice(1)}),{}) };
+  const pillHTML = Object.entries(turToplamlar).map(([tur, toplam]) => {
+    const renk = _stdT2.includes(tur) ? (tur==='fide'?'#6aab7d':tur==='isci'?'#c8a84b':'#888') : (_renkler2[ekstraTurler.indexOf(tur) % _renkler2.length] || '#888');
+    return `<span style="background:${renk};color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;white-space:nowrap"><b>${_turIsimler[tur]||tur}</b> ${toplam.toLocaleString('tr-TR')} ₺</span>`;
+  }).join('');
+  const toplamTutar = allItems.reduce((s,m) => s+(parseFloat(m.tutar)||0), 0);
+  const ozet = pillHTML ? `<div style="display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;background:#fafaf7;border-bottom:1px solid #f0ebe0">${pillHTML}<span style="margin-left:6px;font-size:12px;color:var(--muted);align-self:center">Toplam: <b>${toplamTutar.toLocaleString('tr-TR')} ₺</b></span></div>` : '';
+  const tL = { fide:'Fide', isci:'İşçilik', genel:'Genel', gubre:'Gübre', ...Object.fromEntries(ekstraTurler.map(t=>[t,t])) };
   const tC = { fide:'tur-fide', isci:'tur-isci', genel:'tur-genel' };
-  const _stdT = ['fide','isci','genel'];
+  const _stdT = ['fide','isci','genel','gubre'];
   const _renkler = ['#7b6cb0','#c0614e','#4a90d9','#d4874a','#5a9e8f','#a05cb0','#7a8c3a'];
-  el.innerHTML = allItems.map(m => {
+  el.innerHTML = ozet + '<div>' + allItems.map(m => {
     const tutarStr = m.tutar ? parseFloat(m.tutar).toLocaleString('tr-TR')+' ₺' : '? ₺';
     const turClass = _stdT.includes(m.tur) ? tC[m.tur] || 'tur-genel' : 'tur-custom';
     const turRenk = _stdT.includes(m.tur) ? '' : `style="background:${_renkler[ekstraTurler.indexOf(m.tur) % _renkler.length] || '#888'}"`;
@@ -1926,7 +1969,7 @@ function renderMasraflarFor(id) {
         <button class="btn-sm btn-del" onclick="deleteMasraf('${m.donemKey}','${m.id}')">✕</button>
       </div>
     </div>`;
-  }).join('');
+  }).join('') + '</div>';
 }
 
 function toggleParti(pid) {
@@ -2309,7 +2352,7 @@ function h_urunSatirEkle() {
       <option value="">-- Ürün --</option>${urunOptions}
     </select>
     <input type="number" class="form-input" style="flex:1;padding:8px;font-size:13px" placeholder="Miktar">
-    <select class="form-select" style="flex:1;padding:8px;font-size:13px">
+    <select class="form-select" id="h-satir-birim-${idx}" style="flex:1;padding:8px;font-size:13px">
       <option value="kg">kg</option>
       <option value="adet">adet</option>
     </select>
@@ -2321,10 +2364,19 @@ function h_urunSatirEkle() {
 function h_urunSecildi(sel) {
   const urunler = getUrunler();
   const urun = urunler.find(u => u.id === sel.value);
-  if (urun) {
+  if (urun && urun.birim) {
     const row = sel.parentElement;
     const birimSel = row.querySelectorAll('select')[1];
-    if (birimSel) birimSel.value = urun.birim || 'kg';
+    if (birimSel) {
+      // Eğer birim option yoksa ekle
+      const mevcutValues = Array.from(birimSel.options).map(o => o.value);
+      if (!mevcutValues.includes(urun.birim)) {
+        const opt = document.createElement('option');
+        opt.value = urun.birim; opt.textContent = urun.birim;
+        birimSel.appendChild(opt);
+      }
+      birimSel.value = urun.birim;
+    }
   }
 }
 
@@ -2401,6 +2453,17 @@ async function h_hasatKaydet() {
     if (detail) detail.style.display = 'block';
     renderAliciOzetFor(hCurrentAliciId);
     renderDonemlerFor(hCurrentAliciId);
+    
+    // Son kaydın dönem accordion'unu aç
+    setTimeout(() => {
+      const AYLAR_SON = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+      const [syil, say] = tarihISO.split('-');
+      const ayAd = AYLAR_SON[parseInt(say)-1] + ' ' + syil;
+      const ayId = (hCurrentAliciId + '_' + ayAd).replace(/[^a-z0-9]/gi, '_');
+      const ayBody = document.getElementById('h-ay-body-'+ayId);
+      const ayArrow = document.getElementById('h-ay-arrow-'+ayId);
+      if (ayBody) { ayBody.style.display = 'block'; if(ayArrow) ayArrow.textContent = '⋀'; }
+    }, 100);
     
   } catch(e) { hideLoading(); toast('❌ Hata: ' + e.message); }
 }
@@ -2504,8 +2567,18 @@ async function h_hasatSatirSil(aliciId, ek, tarihId, urunKayitId) {
     setAlicilar(alicilar);
     hideLoading();
     toast('Silindi ✓');
+    // Alıcı detail aç
+    const _det = document.getElementById('h-alici-detail-'+aliciId);
+    if (_det) _det.style.display = 'block';
     renderAliciOzetFor(aliciId);
     renderDonemlerFor(aliciId);
+    // Silinen kaydın dönem accordion'unu aç
+    setTimeout(() => {
+      const ayId = (aliciId + '_' + key).replace(/[^a-z0-9]/gi, '_');
+      const ayBody = document.getElementById('h-ay-body-'+ayId);
+      const ayArrow = document.getElementById('h-ay-arrow-'+ayId);
+      if (ayBody) { ayBody.style.display = 'block'; if(ayArrow) ayArrow.textContent = '⋀'; }
+    }, 100);
   } catch(e) { hideLoading(); toast('❌ Hata: ' + e.message); }
 }
 
@@ -2577,6 +2650,13 @@ function renderDonemlerFor(aliciId) {
     el.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:12px 0">Henüz hasat eklenmedi</div>';
     return;
   }
+
+  // Tarihe göre sırala
+  satirlar.sort((a, b) => {
+    const ta = tarihToISO(a.tarih) || a.tarih || '';
+    const tb = tarihToISO(b.tarih) || b.tarih || '';
+    return ta.localeCompare(tb);
+  });
 
   // Ay bazlı grupla
   const AYLAR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
@@ -2953,6 +3033,8 @@ async function h_deleteDonem(key) {
 function h_openMasrafModal(donemKey, masrafId) {
   h_currentDonemKey = donemKey;
   masrafTurDropdownDoldur('m-tur');
+  u_masrafTurListesiGuncelle();
+  h_masrafTurListesiGuncelle();
   if (masrafId) {
     h_editingMasrafId = masrafId;
     const d = h_getDonemler().find(d => d.key === donemKey);
@@ -2969,17 +3051,9 @@ function h_openMasrafModal(donemKey, masrafId) {
     h_editingMasrafId = null;
     document.getElementById('masraf-modal-title').textContent = `Masraf Gir — ${donemKey}`;
   }
-  // Masraf tür select'ine localStorage'dan yerel türleri ekle
-  const _mturSel = document.getElementById('m-tur');
-  const _mevcutOptions = Array.from(_mturSel.options).map(o => o.value);
-  const _yerelTurler = JSON.parse(localStorage.getItem('masraf_turleri') || '[]');
-  _yerelTurler.forEach(t => {
-    if (!_mevcutOptions.includes(t)) {
-      const opt = document.createElement('option');
-      opt.value = t; opt.textContent = t.charAt(0).toUpperCase() + t.slice(1);
-      _mturSel.insertBefore(opt, _mturSel.lastElementChild);
-    }
-  });
+  masrafTurDropdownDoldur('m-tur');
+  u_masrafTurListesiGuncelle();
+  h_masrafTurListesiGuncelle();
   openModal('masraf-modal');
 }
 
@@ -3203,10 +3277,10 @@ function h_renderDonemler() {
   const donemler = h_getDonemler();
   const el = document.getElementById('donem-list');
   if (!donemler.length) {
-    el.innerHTML = '<div class="empty"><p>Henüz dönem eklenmedi</p></div>';
+    el.innerHTML = '<div class="empty"><p>Henüz masraf girilmedi</p></div>';
     return;
   }
-  const _turLabelBase = { fide:'Fide', isci:'İşçilik', genel:'Genel' };
+  const _turLabelBase = { fide:'Fide', isci:'İşçilik', genel:'Genel', gubre:'Gübre' };
     const _yerelTurlerL = JSON.parse(localStorage.getItem('masraf_turleri')||'[]');
     const turLabel = {..._turLabelBase, ..._yerelTurlerL.reduce((o,t)=>({...o,[t]:t.charAt(0).toUpperCase()+t.slice(1)}),{})};
 
@@ -3221,7 +3295,7 @@ function h_renderDonemler() {
     });
 
     const masrafHTML = d.masraflar.length ? d.masraflar.map(m => {
-      const _stdTurler = ['fide','isci','genel'];
+      const _stdTurler = ['fide','isci','genel','gubre'];
     const _customRenkler = ['#7b6cb0','#c0614e','#4a90d9','#d4874a','#5a9e8f','#a05cb0','#7a8c3a'];
     const _yerelTurler = JSON.parse(localStorage.getItem('masraf_turleri')||'[]');
     const _turIdx = _yerelTurler.indexOf(m.tur);
@@ -3631,6 +3705,8 @@ function b_renderKisiler() {
       });
     });
 
+
+
     // Ay bazlı grupla
     const AYLAR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
     const ayGruplari = {};
@@ -3929,7 +4005,8 @@ async function s_saveSatis(tarihId, netMiktar, birimSec, fiyat, satirId, urunAd)
       alici_id: aliciId,
       net_miktar: netMiktar ? parseFloat(netMiktar) : null,
       birim: birimSec,
-      fiyat: fiyat ? parseFloat(fiyat) : null
+      fiyat: fiyat ? parseFloat(fiyat) : null,
+      satir_id: satirId || tarihId
     };
     if (satislar[kayitKey]?.id) {
       await ATAPI_S.update('satislar', satislar[kayitKey].id, fields);
@@ -4032,7 +4109,9 @@ async function s_satisSil(aliciId, satirId) {
   if (!confirm('Bu satış verisini temizlemek istiyor musunuz?')) return;
   const satislar = s_getSatislar();
   const kayit = satislar[satirId];
-  if (!kayit?.id) return;
+  if (!kayit?.id) {
+    toast('Kayıt bulunamadı'); return;
+  }
   try {
     await ATAPI_S.delete('satislar', kayit.id);
     delete satislar[satirId];
@@ -4207,16 +4286,16 @@ function s_renderAlicilar() {
           const fiyatStr = gercekFiyat ? gercekFiyat.toLocaleString('tr-TR') + ' ₺/' + (satisKaydi?.birimSec||s.birim) : '—';
           const sonFiyat = s_getSonFiyat(a.id, s.urunAd);
           const mevcutFiyat = satisKaydi?.fiyat || sonFiyat.fiyat || '';
-          const mevcutBirim = satisKaydi?.birimSec || s.birim || sonFiyat.birim || 'kg';
+          const mevcutBirim = satisKaydi?.birimSec || sonFiyat.birim || s.birim || 'kg';
           const mevcutMiktar = satisKaydi?.netMiktar || '';
           const kayitliMi = !!(satisKaydi?.netMiktar && satisKaydi?.fiyat);
 
           return `<div style="border-bottom:1px solid #f0ebe0">
             <div style="display:flex;align-items:center;padding:4px 12px;gap:6px;font-size:13px;cursor:pointer" onclick="s_toggleSatirForm('${satirId}')">
               <span class="masraf-tarih-badge">${fmtDateShort(s.tarih)}</span>
-              <span style="flex:1">${s.urunAd} <span style="color:var(--muted)">${s.miktar} ${s.birim}</span></span>
-              <span style="color:var(--subtext);font-size:12px">${fiyatStr}</span>
-              <span style="font-weight:700;color:var(--bark);white-space:nowrap">${tutarStr}</span>
+              <span style="color:var(--subtext);font-size:12px;white-space:nowrap">${s.miktar} ${s.birim}</span>
+              <span style="flex:1"></span>
+              ${kayitliMi ? `<span style="color:var(--muted);font-size:12px;white-space:nowrap">${satisKaydi.netMiktar} ${satisKaydi.birimSec||s.birim} × ${gercekFiyat.toLocaleString('tr-TR')} ₺ = <b style="color:var(--bark)">${tutarStr}</b></span>` : ''}
               ${kayitliMi ? `<button class="btn-sm btn-del" style="padding:2px 6px" onclick="event.stopPropagation();s_satisSil('${a.id}','${satirId}')">✕</button>` : ''}
               <span id="ss-arrow-${satirId}" style="color:var(--leaf);font-size:12px">⋁</span>
             </div>
@@ -4814,18 +4893,21 @@ function masrafTurDropdownDoldur(selectId) {
   const sel = document.getElementById(selectId);
   if (!sel) return;
   // Önce özel türleri temizle
-  Array.from(sel.options).forEach(o => { if (o.dataset.ozel === '1') sel.remove(o.index); });
+  Array.from(sel.options).forEach(o => { if (o.dataset.ozel === '1') o.remove(); });
   // Özel türleri ekle (yeni ekle seçeneğinden önce)
   const ekstra = getMasrafTurleri();
-  const yeniEkleOpt = sel.querySelector('option[value="__yeni__"]');
   ekstra.forEach(tur => {
     if (!sel.querySelector(`option[value="${tur}"]`)) {
       const opt = document.createElement('option');
-      opt.value = tur; opt.textContent = tur; opt.dataset.ozel = '1';
-      if (yeniEkleOpt) sel.insertBefore(opt, yeniEkleOpt);
-      else sel.appendChild(opt);
+      opt.value = tur;
+      opt.textContent = tur.charAt(0).toUpperCase() + tur.slice(1);
+      opt.dataset.ozel = '1';
+      sel.appendChild(opt);
     }
   });
+  // Yönetim listelerini de güncelle
+  if (typeof u_masrafTurListesiGuncelle === 'function') u_masrafTurListesiGuncelle();
+  if (typeof h_masrafTurListesiGuncelle === 'function') h_masrafTurListesiGuncelle();
 }
 
 // Ürünler masraf modal açılınca dropdown'u doldur
@@ -4838,7 +4920,6 @@ function openUrunMasrafModal(urunId) {
   document.getElementById('u-masraf-tur').selectedIndex = 0;
   document.getElementById('u-masraf-tutar').value = '';
   document.getElementById('u-masraf-acik').value = '';
-  document.getElementById('u-yeni-tur-alan').style.display = 'none';
   masrafTurDropdownDoldur('u-masraf-tur');
   openModal('u-masraf-modal');
 }
@@ -4857,15 +4938,7 @@ function h_masrafEkle() {
 }
 
 // Ürünler dropdown değişti
-function u_masrafTurDegisti(sel) {
-  const alan = document.getElementById('u-yeni-tur-alan');
-  if (sel.value === '__yeni__') {
-    alan.style.display = 'block';
-    document.getElementById('u-yeni-tur-ad').focus();
-  } else {
-    alan.style.display = 'none';
-  }
-}
+function u_masrafTurDegisti(sel) {}
 
 // Harcamalar dropdown değişti
 function h_masrafTurDegisti(sel) {
@@ -4879,6 +4952,69 @@ function h_masrafTurDegisti(sel) {
 }
 
 // Ürünler yeni tür kaydet
+function u_turYonetimToggle() {
+  const panel = document.getElementById('u-tur-yonetim-panel');
+  if (!panel) return;
+  const open = panel.style.display === 'block';
+  panel.style.display = open ? 'none' : 'block';
+  if (!open) u_masrafTurListesiGuncelle();
+}
+
+function h_turYonetimToggle() {
+  const panel = document.getElementById('h-tur-yonetim-panel');
+  if (!panel) return;
+  const open = panel.style.display === 'block';
+  panel.style.display = open ? 'none' : 'block';
+  if (!open) h_masrafTurListesiGuncelle();
+}
+
+function u_masrafTurListesiGuncelle() {
+  const el = document.getElementById('u-tur-yonetim');
+  if (!el) return;
+  const turler = getMasrafTurleri();
+  if (!turler.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Özel masraf çeşitleri:</div>' +
+    turler.map((tur, i) => `
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+        <input type="text" value="${tur}" id="tur-edit-${i}" class="form-input" style="flex:1;padding:4px 8px;font-size:12px">
+        <button onclick="u_turKaydet(${i})" style="background:var(--leaf);color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer">✓</button>
+        <button onclick="u_turSil('${tur}')" style="background:none;border:1px solid var(--red);color:var(--red);border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer">✕</button>
+      </div>`).join('');
+}
+
+function u_turKaydet(idx) {
+  const yeniAd = document.getElementById('tur-edit-'+idx)?.value.trim();
+  if (!yeniAd) { toast('Boş bırakılamaz'); return; }
+  const turler = getMasrafTurleri();
+  const eskiAd = turler[idx];
+  if (eskiAd === yeniAd) return;
+  turler[idx] = yeniAd;
+  setMasrafTurleri(turler);
+  masrafTurDropdownDoldur('u-masraf-tur');
+  masrafTurDropdownDoldur('m-tur');
+  u_masrafTurListesiGuncelle();
+  h_masrafTurListesiGuncelle();
+  toast('Güncellendi ✓');
+}
+
+function u_turSil(tur) {
+  // Bu türe ait masraf kaydı var mı kontrol
+  const urunler = getUrunler();
+  let kayitVar = false;
+  urunler.forEach(u => (u.masraflar||[]).forEach(d => (d.items||[]).forEach(m => {
+    if (m.tur === tur) kayitVar = true;
+  })));
+  if (kayitVar) { toast('⚠️ Bu çeşide ait masraf kaydı var, silinemez'); return; }
+  
+  const turler = getMasrafTurleri().filter(t => t !== tur);
+  setMasrafTurleri(turler);
+  masrafTurDropdownDoldur('u-masraf-tur');
+  masrafTurDropdownDoldur('m-tur');
+  u_masrafTurListesiGuncelle();
+  h_masrafTurListesiGuncelle();
+  toast('Silindi ✓');
+}
+
 function u_yeniTurKaydet() {
   const ad = document.getElementById('u-yeni-tur-ad').value.trim();
   if (!ad) { toast('Tür adı giriniz'); return; }
@@ -4886,8 +5022,8 @@ function u_yeniTurKaydet() {
   if (!turler.includes(ad)) { turler.push(ad); setMasrafTurleri(turler); }
   masrafTurDropdownDoldur('u-masraf-tur');
   document.getElementById('u-masraf-tur').value = ad;
-  document.getElementById('u-yeni-tur-alan').style.display = 'none';
   document.getElementById('u-yeni-tur-ad').value = '';
+  u_masrafTurListesiGuncelle();
   toast('Masraf çeşidi eklendi ✓');
 }
 
@@ -4901,7 +5037,54 @@ function h_yeniTurKaydet() {
   document.getElementById('m-tur').value = ad;
   document.getElementById('h-yeni-tur-alan').style.display = 'none';
   document.getElementById('h-yeni-tur-ad').value = '';
+  h_masrafTurListesiGuncelle();
   toast('Masraf çeşidi eklendi ✓');
+}
+
+function h_masrafTurListesiGuncelle() {
+  const el = document.getElementById('h-tur-yonetim');
+  if (!el) return;
+  const turler = getMasrafTurleri();
+  if (!turler.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Özel masraf çeşitleri:</div>' +
+    turler.map((tur, i) => `
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+        <input type="text" value="${tur}" id="htur-edit-${i}" class="form-input" style="flex:1;padding:4px 8px;font-size:12px">
+        <button onclick="h_turKaydet(${i})" style="background:var(--leaf);color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer">✓</button>
+        <button onclick="h_turSil('${tur}')" style="background:none;border:1px solid var(--red);color:var(--red);border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer">✕</button>
+      </div>`).join('');
+}
+
+function h_turKaydet(idx) {
+  const yeniAd = document.getElementById('htur-edit-'+idx)?.value.trim();
+  if (!yeniAd) { toast('Boş bırakılamaz'); return; }
+  const turler = getMasrafTurleri();
+  turler[idx] = yeniAd;
+  setMasrafTurleri(turler);
+  masrafTurDropdownDoldur('m-tur');
+  masrafTurDropdownDoldur('u-masraf-tur');
+  h_masrafTurListesiGuncelle();
+  u_masrafTurListesiGuncelle();
+  toast('Güncellendi ✓');
+}
+
+function h_turSil(tur) {
+  // Kayıt kontrolü - harcamalar
+  const donemler = h_getDonemler();
+  let kayitVar = donemler.some(d => d.masraflar?.some(m => m.tur === tur));
+  if (!kayitVar) {
+    // Ürünler masraflarını da kontrol et
+    const urunler = getUrunler();
+    kayitVar = urunler.some(u => (u.masraflar||[]).some(d => (d.items||[]).some(m => m.tur === tur)));
+  }
+  if (kayitVar) { toast('⚠️ Bu çeşide ait masraf kaydı var, silinemez'); return; }
+  const turler = getMasrafTurleri().filter(t => t !== tur);
+  setMasrafTurleri(turler);
+  masrafTurDropdownDoldur('m-tur');
+  masrafTurDropdownDoldur('u-masraf-tur');
+  h_masrafTurListesiGuncelle();
+  u_masrafTurListesiGuncelle();
+  toast('Silindi ✓');
 }
 
 
