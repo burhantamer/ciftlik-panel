@@ -3929,8 +3929,7 @@ async function s_saveSatis(tarihId, netMiktar, birimSec, fiyat, satirId, urunAd)
       alici_id: aliciId,
       net_miktar: netMiktar ? parseFloat(netMiktar) : null,
       birim: birimSec,
-      fiyat: fiyat ? parseFloat(fiyat) : null,
-      urun_ad: urunAd || null
+      fiyat: fiyat ? parseFloat(fiyat) : null
     };
     if (satislar[kayitKey]?.id) {
       await ATAPI_S.update('satislar', satislar[kayitKey].id, fields);
@@ -3958,22 +3957,38 @@ async function s_saveSatis(tarihId, netMiktar, birimSec, fiyat, satirId, urunAd)
   const openSekme = document.querySelector('#module-satislar .sekme.active');
   const openSekmeId = openSekme ? openSekme.id : null;
 
+  // Açık dönem state'lerini kaydet
+  const openDonems = {};
+  document.querySelectorAll('[id^="dd-"]').forEach(el => {
+    if (el.style.display !== 'none') openDonems[el.id] = true;
+  });
+  // Açık satır formlarını kaydet
+  const openForms = {};
+  document.querySelectorAll('[id^="ss-form-"]').forEach(el => {
+    if (el.style.display === 'block') openForms[el.id] = true;
+  });
+
   s_renderAlicilar();
 
   setTimeout(() => {
+    // Alıcı accordion'u aç
     if (openAliciId) {
-      const d = document.getElementById('ad-'+openAliciId);
-      const a = document.getElementById('aa-'+openAliciId);
-      if (d) { d.style.display = 'block'; if(a) a.textContent = '⋀'; }
+      const _d = document.getElementById('ad-'+openAliciId);
+      const _a = document.getElementById('aa-'+openAliciId);
+      if (_d) { _d.style.display = 'block'; if(_a) _a.textContent = '⋀'; }
       s_renderAliciOzet(openAliciId);
+      s_switchSekme(openAliciId, 'satis');
     }
-    if (openDonemId) {
-      const d = document.getElementById(openDonemId);
-      const a = document.getElementById(openDonemId.replace('dd-','da-'));
-      if (d) { d.style.display = 'block'; if(a) a.textContent = '⋀'; }
-    }
-    // Sekme koru - her zaman satış sekmesinde kal
-    if (openAliciId) s_switchSekme(openAliciId, 'satis');
+    // Dönem panellerini aç
+    Object.keys(openDonems).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.display = 'block';
+        const arrowId = id.replace('dd-', 'da-');
+        const arrow = document.getElementById(arrowId);
+        if (arrow) arrow.textContent = '⋀';
+      }
+    });
   }, 50);
 }
 
@@ -4013,27 +4028,34 @@ async function s_satirKaydet(tarihId, satirId, urunAd) {
   await s_saveSatis(tarihId, miktar, birim, fiyat, satirId, urunAd);
 }
 
-async function s_satisSil(aliciId, tarihId) {
-  if (!confirm('Bu satış kaydını silmek istiyor musunuz?')) return;
+async function s_satisSil(aliciId, satirId) {
+  if (!confirm('Bu satış verisini temizlemek istiyor musunuz?')) return;
   const satislar = s_getSatislar();
-  const kayit = satislar[tarihId];
+  const kayit = satislar[satirId];
   if (!kayit?.id) return;
   try {
     await ATAPI_S.delete('satislar', kayit.id);
-    delete satislar[tarihId];
+    delete satislar[satirId];
     s_setSatislar(satislar);
     s_guncelleUrunGeliri();
-    toast('Silindi ✓');
-    // Accordion koru
-    const detail = document.getElementById('ad-'+aliciId);
-    const arrow = document.getElementById('aa-'+aliciId);
-    s_renderAlicilar();
-    setTimeout(() => {
-      if (detail) { detail.style.display = 'block'; if(arrow) arrow.textContent = '⋀'; }
-      s_renderAliciOzet(aliciId);
-      s_switchSekme(aliciId, 'satis');
-    }, 50);
-  } catch(e) { toast('❌ ' + e.message); }
+    toast('Temizlendi ✓');
+  } catch(e) { toast('❌ ' + e.message); return; }
+  const _openDonems2 = {};
+  document.querySelectorAll('[id^="dd-"]').forEach(el => {
+    if (el.style.display !== 'none') _openDonems2[el.id] = true;
+  });
+  s_renderAlicilar();
+  setTimeout(() => {
+    const _ad = document.getElementById('ad-'+aliciId);
+    const _aa = document.getElementById('aa-'+aliciId);
+    if (_ad) { _ad.style.display='block'; if(_aa) _aa.textContent='⋀'; }
+    Object.keys(_openDonems2).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.display='block'; const ar = document.getElementById(id.replace('dd-','da-')); if(ar) ar.textContent='⋀'; }
+    });
+    s_renderAliciOzet(aliciId);
+    s_switchSekme(aliciId, 'satis');
+  }, 50);
 }
 
 function s_toggleSevkForm(tarihId) {
@@ -4059,11 +4081,13 @@ function s_renderAliciOzet(aliciId) {
   let toplamGelir = 0;
 
   (alici?.donemler||[]).forEach(d => (d.tarihler||[]).forEach(t => {
-    const s = satislar[t.id];
-    if (!s?.netMiktar || !s?.fiyat) return;
-    const tutar = parseFloat(s.netMiktar) * parseFloat(s.fiyat);
-    toplamGelir += tutar;
     (t.urunler||[]).forEach(u => {
+      // Önce satirId bazlı ara, yoksa tarih bazlı ara
+      const satirId = t.id + '_' + (u.urunAd||'').replace(/[^a-z0-9]/gi,'_');
+      const s = satislar[satirId] || satislar[t.id];
+      if (!s?.netMiktar || !s?.fiyat) return;
+      const tutar = parseFloat(s.netMiktar) * parseFloat(s.fiyat);
+      toplamGelir += tutar;
       urunGelir[u.urunAd] = (urunGelir[u.urunAd]||0) + tutar;
     });
   }));
@@ -4097,15 +4121,22 @@ function s_renderAliciOzet(aliciId) {
   const odemeler = s_getOdemeler();
   const toplamOdeme = (odemeler[aliciId]||[]).reduce((s,o) => s+(parseFloat(o.tutar)||0), 0);
 
+  const bakiye = toplamGelir - toplamOdeme;
+  const bakiyeRenk = bakiye >= 0 ? 'var(--leaf)' : 'var(--red)';
+
   el.innerHTML = `
-    <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:6px">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:6px">
       <div>
-        <div class="toplam-label">Toplam Satış Geliri</div>
+        <div class="toplam-label">Toplam Satış</div>
         <div class="toplam-val">${fmtPara(toplamGelir)}</div>
       </div>
       <div>
         <div class="toplam-label">Tahsil Edilen</div>
         <div class="toplam-val" style="color:var(--red)">-${fmtPara(toplamOdeme)}</div>
+      </div>
+      <div>
+        <div class="toplam-label">Bakiye</div>
+        <div class="toplam-val" style="color:${bakiyeRenk}">${fmtPara(Math.abs(bakiye))}</div>
       </div>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:4px">${pillHTML}</div>`;
@@ -4121,8 +4152,11 @@ function s_renderAlicilar() {
       const ek = encodeURIComponent(d.key);
       let donemToplam = 0;
       d.tarihler.forEach(t => {
-        const s = satislar[t.id];
-        if (s?.netMiktar && s?.fiyat) donemToplam += parseFloat(s.netMiktar) * parseFloat(s.fiyat);
+        (t.urunler||[]).forEach(u => {
+          const satirId = t.id + '_' + (u.urunAd||'').replace(/[^a-z0-9]/gi,'_');
+          const s = satislar[satirId] || satislar[t.id];
+          if (s?.netMiktar && s?.fiyat) donemToplam += parseFloat(s.netMiktar) * parseFloat(s.fiyat);
+        });
       });
 
       // Dönem ürün bazlı gelir
@@ -4165,12 +4199,12 @@ function s_renderAlicilar() {
         });
 
         return satirlar.map(s => {
+          const satirId = s.tarihId + '_' + (s.urunAd||'').replace(/[^a-z0-9]/gi,'_');
           const satisKaydi = satislar[satirId] || satislar[s.tarihId];
           const gercekTutar = (satisKaydi?.netMiktar && satisKaydi?.fiyat) ? parseFloat(satisKaydi.netMiktar) * parseFloat(satisKaydi.fiyat) : null;
           const gercekFiyat = satisKaydi?.fiyat || s.birimFiyat;
           const tutarStr = gercekTutar ? fmtPara(gercekTutar) : '—';
           const fiyatStr = gercekFiyat ? gercekFiyat.toLocaleString('tr-TR') + ' ₺/' + (satisKaydi?.birimSec||s.birim) : '—';
-          const satirId = s.tarihId + '_' + (s.urunAd||'').replace(/[^a-z0-9]/gi,'_');
           const sonFiyat = s_getSonFiyat(a.id, s.urunAd);
           const mevcutFiyat = satisKaydi?.fiyat || sonFiyat.fiyat || '';
           const mevcutBirim = satisKaydi?.birimSec || s.birim || sonFiyat.birim || 'kg';
@@ -4183,7 +4217,7 @@ function s_renderAlicilar() {
               <span style="flex:1">${s.urunAd} <span style="color:var(--muted)">${s.miktar} ${s.birim}</span></span>
               <span style="color:var(--subtext);font-size:12px">${fiyatStr}</span>
               <span style="font-weight:700;color:var(--bark);white-space:nowrap">${tutarStr}</span>
-              ${kayitliMi ? `<button class="btn-sm btn-del" style="padding:2px 6px" onclick="event.stopPropagation();s_satisSil('${a.id}','${s.tarihId}')">✕</button>` : ''}
+              ${kayitliMi ? `<button class="btn-sm btn-del" style="padding:2px 6px" onclick="event.stopPropagation();s_satisSil('${a.id}','${satirId}')">✕</button>` : ''}
               <span id="ss-arrow-${satirId}" style="color:var(--leaf);font-size:12px">⋁</span>
             </div>
             <div id="ss-form-${satirId}" style="display:none;background:#f5f0e8;padding:8px 12px">
@@ -4220,9 +4254,6 @@ function s_renderAlicilar() {
         </div>
         <div class="donem-body" id="dd-${a.id}-${ek}">
           <div class="donem-ozet" style="flex-direction:column;gap:6px">
-            <div style="display:flex;align-items:center;gap:8px">
-              <div class="dozet-item"><span class="dozet-label">Toplam Satış Geliri</span><span class="dozet-val">${donemToplam > 0 ? fmtPara(donemToplam) : '—'}</span></div>
-            </div>
             ${donemUrunStr ? `<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:12px">${donemUrunStr}</div>` : ''}
           </div>
           ${tarihlerHTML}
@@ -4298,6 +4329,7 @@ function s_odemeKaydetDuzenle() {
   s_odemeDuzenleKapat();
   toast('Ödeme güncellendi ✓');
   s_renderOdemeler(aliciIdKopyasi);
+  s_renderAliciOzet(aliciIdKopyasi);
 }
 
 async function s_odemeAcikSil(aliciId, odemeId) {
@@ -4307,9 +4339,10 @@ async function s_odemeAcikSil(aliciId, odemeId) {
     const odemeler = s_getOdemeler();
     if (odemeler[aliciId]) odemeler[aliciId] = odemeler[aliciId].filter(o => o.id !== odemeId);
     s_setOdemeler(odemeler);
-    toast('Silindi');
+    toast('Silindi ✓');
   } catch(e) { toast('❌ ' + e.message); }
   s_renderOdemeler(aliciId);
+  s_renderAliciOzet(aliciId);
 }
 
 function s_renderOdemeler(aliciId) {
@@ -4368,13 +4401,16 @@ function s_renderOdemeler(aliciId) {
   const ayToplamMap = {};
   (alici?.donemler||[]).forEach(d => {
     (d.tarihler||[]).forEach(t => {
-      const s = satislar[t.id];
-      if (!s?.netMiktar || !s?.fiyat) return;
-      const tutar = parseFloat(s.netMiktar) * parseFloat(s.fiyat);
-      const iso = tarihToISO(t.tarih) || t.tarih || '';
-      const [yil, ay] = iso.split('-');
-      const ayKey = yil + '-' + ay;
-      ayToplamMap[ayKey] = (ayToplamMap[ayKey]||0) + tutar;
+      (t.urunler||[]).forEach(u => {
+        const satirId = t.id + '_' + (u.urunAd||'').replace(/[^a-z0-9]/gi,'_');
+        const s = satislar[satirId] || satislar[t.id];
+        if (!s?.netMiktar || !s?.fiyat) return;
+        const tutar = parseFloat(s.netMiktar) * parseFloat(s.fiyat);
+        const iso = tarihToISO(t.tarih) || t.tarih || '';
+        const [yil, ay] = iso.split('-');
+        const ayKey = yil + '-' + ay;
+        ayToplamMap[ayKey] = (ayToplamMap[ayKey]||0) + tutar;
+      });
     });
   });
 
@@ -4416,10 +4452,7 @@ function s_renderOdemeler(aliciId) {
   el.innerHTML = `<div style="padding-bottom:14px">
     ${odemeEkleBtn}
     ${odemeSatirlari}
-    <div class="bakiye-satir">
-      <span class="bakiye-label">Bakiye</span>
-      <span class="bakiye-tutar" style="color:${bakiyeRenk}">${bakiyeStr}</span>
-    </div>
+
   </div>`;
 }
 
@@ -4581,8 +4614,11 @@ function renderRaporAlici() {
   alicilar.forEach(a => {
     let toplam = 0;
     (a.donemler||[]).forEach(d => (d.tarihler||[]).forEach(t => {
-      const s = satislar[t.id];
-      if (s?.netMiktar && s?.fiyat) toplam += parseFloat(s.netMiktar) * parseFloat(s.fiyat);
+      (t.urunler||[]).forEach(u => {
+        const satirId = t.id + '_' + (u.urunAd||'').replace(/[^a-z0-9]/gi,'_');
+        const s = satislar[satirId] || satislar[t.id];
+        if (s?.netMiktar && s?.fiyat) toplam += parseFloat(s.netMiktar) * parseFloat(s.fiyat);
+      });
     }));
     const aliciOdemeler = (odemeler[a.id]||[]).reduce((sum,o) => sum+o.tutar, 0);
     if (toplam > 0 || aliciOdemeler > 0) {
@@ -4635,10 +4671,11 @@ function renderRaporUrun() {
 
   // Satışlar
   alicilar.forEach(a => (a.donemler||[]).forEach(d => (d.tarihler||[]).forEach(t => {
-    const s = satislar[t.id];
-    if (!s?.netMiktar || !s?.fiyat) return;
-    const tutar = parseFloat(s.netMiktar) * parseFloat(s.fiyat);
     (t.urunler||[]).forEach(u => {
+      const satirId = t.id + '_' + (u.urunAd||'').replace(/[^a-z0-9]/gi,'_');
+      const s = satislar[satirId] || satislar[t.id];
+      if (!s?.netMiktar || !s?.fiyat) return;
+      const tutar = parseFloat(s.netMiktar) * parseFloat(s.fiyat);
       if (urunGelir[u.urunId]) urunGelir[u.urunId].satis += tutar;
     });
   })));
