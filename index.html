@@ -4524,14 +4524,7 @@ function getRaporVerileri() {
     });
   });
 
-  // Ürün masrafları
-  urunler.forEach(u => (u.masraflar||[]).forEach(d => {
-    if (!gecerliDonemRegex.test(d.key)) return;
-    if (!donemMap[d.key]) donemMap[d.key] = { satis: 0, masraf: 0 };
-    (d.items||[]).forEach(m => {
-      donemMap[d.key].masraf += parseFloat(m.tutar)||0;
-    });
-  }));
+
 
   const alicilar = s_getAlicilar();
   const satislar = s_getSatislar();
