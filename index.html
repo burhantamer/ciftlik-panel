@@ -1521,7 +1521,7 @@ function switchModule(name) {
     setTimeout(() => renderAlicilar(), 50);
     // Accordion'ları kapat
     document.querySelectorAll('[id^="h-alici-detail-"]').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('[id^="h-alici-arrow-"]').forEach(el => el.textContent = '⋁');
+    document.querySelectorAll('[id^="h-alici-arrow-"]').forEach(el => el.textContent = '');
   }
 
   document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
@@ -1608,7 +1608,7 @@ async function saveUrun() {
       setTimeout(() => {
         const detail = document.getElementById('u-detail-'+uCurrentUrunId);
         const arrow = document.getElementById('u-arrow-main-'+uCurrentUrunId);
-        if (detail) { detail.style.display = 'block'; if(arrow) arrow.textContent = '⋀'; }
+        if (detail) { detail.style.display = 'block';  }
       }, 50);
     }
   } catch(e) { hideLoading(); toast('❌ Hata: ' + e.message); }
@@ -1686,7 +1686,7 @@ async function saveParti() {
     setTimeout(() => {
       const d = document.getElementById('u-detail-'+uCurrentUrunId);
       const a = document.getElementById('u-arrow-main-'+uCurrentUrunId);
-      if (d) { d.style.display='block'; if(a) a.textContent='⋀'; }
+      if (d) { d.style.display='block'; if(a) a.textContent = ''; }
     }, 50);
   } catch(e) { hideLoading(); toast('❌ Hata: ' + e.message); }
 }
@@ -1719,7 +1719,7 @@ async function deleteParti(pid) {
     setTimeout(() => {
       const d = document.getElementById('u-detail-'+uCurrentUrunId);
       const a = document.getElementById('u-arrow-main-'+uCurrentUrunId);
-      if (d) { d.style.display='block'; if(a) a.textContent='⋀'; }
+      if (d) { d.style.display='block'; if(a) a.textContent = ''; }
     }, 50);
   } catch(e) { hideLoading(); toast('❌ Hata: ' + e.message); }
 }
@@ -1760,7 +1760,7 @@ async function saveMasraf() {
     setTimeout(() => {
       const d = document.getElementById('u-detail-'+uCurrentUrunId);
       const a = document.getElementById('u-arrow-main-'+uCurrentUrunId);
-      if (d) { d.style.display='block'; if(a) a.textContent='⋀'; }
+      if (d) { d.style.display='block'; if(a) a.textContent = ''; }
     }, 50);
   } catch(e) { hideLoading(); toast('❌ Hata: ' + e.message); }
 }
@@ -1805,7 +1805,7 @@ function renderUrunler() {
         <div style="display:flex;align-items:center;gap:6px;flex:1">
           <span style="color:var(--muted);font-size:16px;cursor:grab;padding-right:4px" title="Sürükle">⠿</span>
           <span class="card-name">${u.ad}</span>
-          <span id="u-arrow-main-${u.id}" style="color:var(--leaf);font-size:15px;font-weight:600">⋁</span>
+          
         </div>
         <div style="display:flex;gap:8px;align-items:center" onclick="event.stopPropagation()">
           <button class="btn-sm btn-edit" onclick="editUrun('${u.id}')">✎</button>
@@ -1886,10 +1886,10 @@ function toggleUrun(id) {
   const open = detail.style.display === 'block';
   if (!open) {
     document.querySelectorAll('[id^="u-detail-"]').forEach(el => { el.style.display = 'none'; });
-    document.querySelectorAll('[id^="u-arrow-main-"]').forEach(el => { el.textContent = '⋁'; });
+    document.querySelectorAll('[id^="u-arrow-main-"]').forEach(el => {  });
   }
   detail.style.display = open ? 'none' : 'block';
-  arrow.textContent = open ? '⋁' : '⋀';
+  
   if (!open) {
     uCurrentUrunId = id;
     renderStatsFor(id);
@@ -1980,7 +1980,7 @@ function renderEkilişlerFor(id) {
         <div style="display:flex;gap:4px;align-items:center;flex-shrink:0" onclick="event.stopPropagation()">
           <button class="btn-sm btn-edit" onclick="editParti('${p.id}')">✎</button>
           <button class="btn-sm btn-del" onclick="deleteParti('${p.id}')">✕</button>
-          <span style="color:var(--leaf);font-size:12px" id="u-arrow-parti-${p.id}">⋁</span>
+          
         </div>
       </div>
       <div id="u-parti-detail-${p.id}" style="display:none;padding:8px 14px 10px;background:#fafaf7;border-top:1px solid #f0ebe0">
@@ -2054,7 +2054,7 @@ function toggleParti(pid) {
   if (!d) return;
   const open = d.style.display === 'block';
   d.style.display = open ? 'none' : 'block';
-  if (a) a.textContent = open ? '⋁' : '⋀';
+  if (a) a.textContent = '';
 }
 
 // ══════════════════════ HASAT MODÜLÜ ══════════════════════
@@ -2134,7 +2134,7 @@ function saveDonem() {
   setTimeout(() => {
     const dd = document.getElementById('h-alici-detail-'+hCurrentAliciId);
     const da = document.getElementById('h-alici-arrow-'+hCurrentAliciId);
-    if (dd) { dd.style.display='block'; if(da) da.textContent='⋀'; }
+    if (dd) { dd.style.display='block'; if(da) da.textContent = ''; }
   }, 50);
 }
 
@@ -2228,13 +2228,13 @@ function saveTarih() {
   setTimeout(() => {
     const adet = document.getElementById('h-alici-detail-'+hCurrentAliciId);
     const aarw = document.getElementById('h-alici-arrow-'+hCurrentAliciId);
-    if (adet) { adet.style.display='block'; if(aarw) aarw.textContent='⋀'; }
+    if (adet) { adet.style.display='block'; if(aarw) aarw.textContent = ''; }
     // Dönem listesini render et
     renderDonemlerFor(hCurrentAliciId);
     setTimeout(() => {
       const ddd = document.getElementById('h-donem-detail-'+hCurrentAliciId+'-'+ek4);
       const dda = document.getElementById('h-donem-arrow-'+hCurrentAliciId+'-'+ek4);
-      if (ddd) { ddd.style.display='block'; if(dda) dda.textContent='⋀'; }
+      if (ddd) { ddd.style.display='block'; if(dda) dda.textContent = ''; }
       renderTarihlerFor(hCurrentAliciId, ek4);
     }, 50);
   }, 50);
@@ -2344,12 +2344,12 @@ async function saveHasatUrun() {
     setTimeout(() => {
       const dd = document.getElementById('h-alici-detail-'+hCurrentAliciId);
       const da = document.getElementById('h-alici-arrow-'+hCurrentAliciId);
-      if (dd) { dd.style.display='block'; if(da) da.textContent='⋀'; }
+      if (dd) { dd.style.display='block'; if(da) da.textContent = ''; }
       renderDonemOzetFor(hCurrentAliciId, ek2);
       renderTarihlerFor(hCurrentAliciId, ek2);
       const ddd = document.getElementById('h-donem-detail-'+hCurrentAliciId+'-'+ek2);
       const dda = document.getElementById('h-donem-arrow-'+hCurrentAliciId+'-'+ek2);
-      if (ddd) { ddd.style.display='block'; if(dda) dda.textContent='⋀'; }
+      if (ddd) { ddd.style.display='block'; if(dda) dda.textContent = ''; }
     }, 50);
   } catch(e) { hideLoading(); toast('❌ Hata: ' + e.message); }
 }
@@ -2392,7 +2392,7 @@ function renderAlicilar() {
         <div style="display:flex;align-items:center;gap:6px;flex:1">
           <span style="color:var(--muted);font-size:16px;cursor:grab;padding-right:4px" title="Sürükle">⠿</span>
           <span class="card-name">${a.ad}</span>
-          <span id="h-alici-arrow-${a.id}" style="color:var(--leaf);font-size:15px;font-weight:600">⋁</span>
+          
         </div>
         <div style="display:flex;gap:8px;align-items:center" onclick="event.stopPropagation()">
           <button class="btn-add" style="padding:5px 10px;font-size:12px" onclick="openTarihEkleForAlici('${a.id}')">+ Hasat Ekle</button>
@@ -2542,7 +2542,7 @@ async function h_hasatKaydet() {
       const ayId = (hCurrentAliciId + '_' + ayAd).replace(/[^a-z0-9]/gi, '_');
       const ayBody = document.getElementById('h-ay-body-'+ayId);
       const ayArrow = document.getElementById('h-ay-arrow-'+ayId);
-      if (ayBody) { ayBody.style.display = 'block'; if(ayArrow) ayArrow.textContent = '⋀'; }
+      if (ayBody) { ayBody.style.display = 'block'; if(ayArrow) ayArrow.textContent = ''; }
     }, 100);
     
   } catch(e) { hideLoading(); toast('❌ Hata: ' + e.message); }
@@ -2657,7 +2657,7 @@ async function h_hasatSatirSil(aliciId, ek, tarihId, urunKayitId) {
       const ayId = (aliciId + '_' + key).replace(/[^a-z0-9]/gi, '_');
       const ayBody = document.getElementById('h-ay-body-'+ayId);
       const ayArrow = document.getElementById('h-ay-arrow-'+ayId);
-      if (ayBody) { ayBody.style.display = 'block'; if(ayArrow) ayArrow.textContent = '⋀'; }
+      if (ayBody) { ayBody.style.display = 'block'; if(ayArrow) ayArrow.textContent = ''; }
     }, 100);
   } catch(e) { hideLoading(); toast('❌ Hata: ' + e.message); }
 }
@@ -2669,10 +2669,10 @@ function toggleAlici(id) {
   // Diğer alıcıları kapat
   if (!open) {
     document.querySelectorAll('[id^="h-alici-detail-"]').forEach(el => { el.style.display = 'none'; });
-    document.querySelectorAll('[id^="h-alici-arrow-"]').forEach(el => { el.textContent = '⋁'; });
+    document.querySelectorAll('[id^="h-alici-arrow-"]').forEach(el => {  });
   }
   detail.style.display = open ? 'none' : 'block';
-  arrow.textContent = open ? '⋁' : '⋀';
+  
   if (!open) {
     hCurrentAliciId = id;
     renderAliciOzetFor(id);
@@ -2790,7 +2790,7 @@ function renderDonemlerFor(aliciId) {
     html += `<div style="margin-bottom:4px">
       <div style="display:flex;align-items:center;padding:6px 12px;cursor:pointer" onclick="h_toggleAy('${aliciId}_${ayId}')">
         <span style="font-weight:700;font-size:14px;color:var(--leaf);flex:1">${ayAd}</span>
-        <span id="h-ay-arrow-${aliciId}_${ayId}" style="color:var(--leaf);font-size:13px">⋁</span>
+        
       </div>
       <div id="h-ay-body-${aliciId}_${ayId}" style="display:none">
         <div style="display:flex;flex-wrap:wrap;gap:4px;padding:3px 12px 8px">${toplamHtml}</div>
@@ -2808,7 +2808,6 @@ function h_toggleAy(id) {
   if (!body) return;
   const open = body.style.display === 'block';
   body.style.display = open ? 'none' : 'block';
-  if (arrow) arrow.textContent = open ? '⋁' : '⋀';
 }
 
 
@@ -2819,10 +2818,10 @@ function toggleDonem(aliciId, ek) {
   // Aynı alıcıdaki diğer dönemleri kapat
   if (!open) {
     document.querySelectorAll('[id^="h-donem-detail-'+aliciId+'-"]').forEach(el => { el.style.display = 'none'; });
-    document.querySelectorAll('[id^="h-donem-arrow-'+aliciId+'-"]').forEach(el => { el.textContent = '⋁'; });
+    document.querySelectorAll('[id^="h-donem-arrow-'+aliciId+'-"]').forEach(el => {  });
   }
   detail.style.display = open ? 'none' : 'block';
-  arrow.textContent = open ? '⋁' : '⋀';
+  
   if (!open) {
     hCurrentAliciId = aliciId;
     hCurrentDonemKey = decodeURIComponent(ek);
@@ -2895,7 +2894,6 @@ function toggleTarihFor(key) {
   if (!body) return;
   const open = body.style.display === 'block';
   body.style.display = open ? 'none' : 'block';
-  if (arrow) arrow.textContent = open ? '⋁' : '⋀';
 }
 
 function openHasatUrunEkleFor(aliciId, ek, tarihId) {
@@ -3082,7 +3080,7 @@ async function h_saveDonem() {
     const ek = encodeURIComponent(h_currentDonemKey);
     const d = document.getElementById('d-detail-'+ek);
     const a = document.getElementById('d-arrow-'+ek);
-    if (d) { d.style.display = 'block'; if(a) a.textContent = '⋀'; }
+    if (d) { d.style.display = 'block'; if(a) a.textContent = ''; }
   }, 50);
 }
 
@@ -3197,7 +3195,7 @@ async function h_saveMasraf(borcOlarakEkle) {
       const ek = encodeURIComponent(h_currentDonemKey);
       const detail = document.getElementById('d-detail-'+ek);
       const arrow = document.getElementById('d-arrow-'+ek);
-      if (detail) { detail.style.display = 'block'; if(arrow) arrow.textContent = '⋀'; }
+      if (detail) { detail.style.display = 'block';  }
     }, 50);
   } catch(e) { hideLoading(); toast('❌ ' + e.message); }
 }
@@ -3301,7 +3299,7 @@ async function h_kaydetVeBorcEkle() {
       const ek = encodeURIComponent(h_bekleyenMasraf.donemKey);
       const detail = document.getElementById('d-detail-'+ek);
       const arrow = document.getElementById('d-arrow-'+ek);
-      if (detail) { detail.style.display = 'block'; if(arrow) arrow.textContent = '⋀'; }
+      if (detail) { detail.style.display = 'block';  }
     }, 50);
     toast('✓ Harcama ve borç kaydedildi');
     h_bekleyenMasraf = null;
@@ -3324,7 +3322,7 @@ async function h_deleteMasraf(donemKey, masrafId) {
     setTimeout(() => {
       const detail = document.getElementById('d-detail-'+ek);
       const arrow = document.getElementById('d-arrow-'+ek);
-      if (detail) { detail.style.display = 'block'; if(arrow) arrow.textContent = '⋀'; }
+      if (detail) { detail.style.display = 'block';  }
     }, 50);
   } catch(e) { hideLoading(); toast('❌ ' + e.message); }
 }
@@ -3433,10 +3431,10 @@ function h_toggleDonem(ek) {
   const open = detail.style.display === 'block';
   if (!open) {
     document.querySelectorAll('[id^="d-detail-"]').forEach(el => { el.style.display = 'none'; });
-    document.querySelectorAll('[id^="d-arrow-"]').forEach(el => { el.textContent = '⋁'; });
+    document.querySelectorAll('[id^="d-arrow-"]').forEach(el => {  });
   }
   detail.style.display = open ? 'none' : 'block';
-  arrow.textContent = open ? '⋁' : '⋀';
+  
 }
 
 // Close on overlay click
@@ -3669,7 +3667,7 @@ async function b_saveBorc() {
       // Kişi accordion aç
       const detail = document.getElementById('b-kisi-detail-'+b_currentKisiId);
       const arrow = document.getElementById('b-kisi-arrow-'+b_currentKisiId);
-      if (detail) { detail.style.display = 'block'; if(arrow) arrow.textContent = '⋀'; }
+      if (detail) { detail.style.display = 'block';  }
       // Ay accordion aç
       const AYLAR_B2 = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
       const tarihB2 = tarihToISO(tarih) || tarih || '';
@@ -3678,7 +3676,7 @@ async function b_saveBorc() {
       const ayId2 = (b_currentKisiId + '_' + ayAd2).replace(/[^a-z0-9]/gi, '_');
       const ayBody2 = document.getElementById('b-ay-body-'+ayId2);
       const ayArrow2 = document.getElementById('b-ay-arrow-'+ayId2);
-      if (ayBody2) { ayBody2.style.display = 'block'; if(ayArrow2) ayArrow2.textContent = '⋀'; }
+      if (ayBody2) { ayBody2.style.display = 'block'; if(ayArrow2) ayArrow2.textContent = ''; }
     }, 50);
   } catch(e) { toast('❌ ' + e.message); }
 }
@@ -3715,7 +3713,7 @@ async function b_toggleOdendi(kisiId, donemKey, borcId) {
     // Kişi accordion aç
     const detail = document.getElementById('b-kisi-detail-'+kisiId);
     const arrow = document.getElementById('b-kisi-arrow-'+kisiId);
-    if (detail) { detail.style.display = 'block'; if(arrow) arrow.textContent = '⋀'; }
+    if (detail) { detail.style.display = 'block';  }
     // Ay accordion aç - donemKey'den ay adını bul
     const AYLAR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
     const b2 = d?.borclar?.find(b => b.id === borcId);
@@ -3725,7 +3723,7 @@ async function b_toggleOdendi(kisiId, donemKey, borcId) {
     const ayId = (kisiId + '_' + ayAd).replace(/[^a-z0-9]/gi, '_');
     const ayBody = document.getElementById('b-ay-body-'+ayId);
     const ayArrow = document.getElementById('b-ay-arrow-'+ayId);
-    if (ayBody) { ayBody.style.display = 'block'; if(ayArrow) ayArrow.textContent = '⋀'; }
+    if (ayBody) { ayBody.style.display = 'block'; if(ayArrow) ayArrow.textContent = ''; }
   }, 50);
 }
 
@@ -3733,14 +3731,14 @@ async function b_toggleOdendi(kisiId, donemKey, borcId) {
 function b_reopenKisi(kisiId) {
   const detail = document.getElementById(`ki-detail-${kisiId}`);
   const arrow = document.getElementById(`ki-arrow-${kisiId}`);
-  if (detail) { detail.style.display = 'block'; if (arrow) arrow.textContent = '⋀'; }
+  if (detail) { detail.style.display = 'block'; if (arrow) arrow.textContent = ''; }
 }
 
 function b_reopenDonem(kisiId, donemKey) {
   const ek = encodeURIComponent(donemKey);
   const detail = document.getElementById(`d-detail-${kisiId}-${ek}`);
   const arrow = document.getElementById(`d-arrow-${kisiId}-${ek}`);
-  if (detail) { detail.style.display = 'block'; if (arrow) arrow.textContent = '⋀'; }
+  if (detail) { detail.style.display = 'block'; if (arrow) arrow.textContent = ''; }
 }
 
 // ── TOPLAM HESAPLA ──
@@ -3838,7 +3836,7 @@ function b_renderKisiler() {
         <div style="display:flex;align-items:center;gap:6px;flex:1">
           <span style="color:var(--muted);font-size:16px;cursor:grab;padding-right:4px" title="Sürükle">⠿</span>
           <span class="card-name">${k.ad}</span>
-          <span id="b-kisi-arrow-${k.id}" style="color:var(--leaf);font-size:15px;font-weight:600">⋁</span>
+          
         </div>
         <div style="display:flex;gap:8px;align-items:center" onclick="event.stopPropagation()">
           <button class="btn-add" style="padding:5px 10px;font-size:12px" onclick="b_openBorcModal('${k.id}',null,null)">+ Borç Ekle</button>
@@ -3864,7 +3862,6 @@ function toggleKisi(id) {
   if (!detail) return;
   const open = detail.style.display === 'block';
   detail.style.display = open ? 'none' : 'block';
-  if (arrow) arrow.textContent = open ? '⋁' : '⋀';
 }
 
 function b_toggleAy(ayId) {
@@ -3873,7 +3870,6 @@ function b_toggleAy(ayId) {
   if (!body) return;
   const open = body.style.display === 'block';
   body.style.display = open ? 'none' : 'block';
-  if (arrow) arrow.textContent = open ? '⋁' : '⋀';
 }
 
 
@@ -3883,10 +3879,10 @@ function b_toggleKisi(id) {
   const open = detail.style.display === 'block';
   if (!open) {
     document.querySelectorAll('[id^="ki-detail-"]').forEach(el => { el.style.display = 'none'; });
-    document.querySelectorAll('[id^="ki-arrow-"]').forEach(el => { el.textContent = '⋁'; });
+    document.querySelectorAll('[id^="ki-arrow-"]').forEach(el => {  });
   }
   detail.style.display = open ? 'none' : 'block';
-  arrow.textContent = open ? '⋁' : '⋀';
+  
 }
 
 function b_toggleDonem(kisiId, ek) {
@@ -3894,7 +3890,7 @@ function b_toggleDonem(kisiId, ek) {
   const arrow = document.getElementById(`d-arrow-${kisiId}-${ek}`);
   const open = detail.style.display === 'block';
   detail.style.display = open ? 'none' : 'block';
-  arrow.textContent = open ? '⋁' : '⋀';
+  
 }
 
 // Close on overlay click
@@ -3990,11 +3986,11 @@ async function initSatislar() {
   // Tüm accordion'ları kapat
   setTimeout(() => {
     document.querySelectorAll('#module-satislar [id^="ad-"]').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('#module-satislar [id^="aa-"]').forEach(el => el.textContent = '⋁');
+    document.querySelectorAll('#module-satislar [id^="aa-"]').forEach(el => el.textContent = '');
     document.querySelectorAll('#module-satislar [id^="dd-"]').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('#module-satislar [id^="da-"]').forEach(el => el.textContent = '⋁');
+    document.querySelectorAll('#module-satislar [id^="da-"]').forEach(el => el.textContent = '');
     document.querySelectorAll('#module-satislar [id^="sf-"]').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('#module-satislar [id^="sa-"]').forEach(el => el.textContent = '⋁');
+    document.querySelectorAll('#module-satislar [id^="sa-"]').forEach(el => el.textContent = '');
   }, 150);
 }
 
@@ -4099,7 +4095,7 @@ function s_renderAlicilar() {
           <button class="btn-sm btn-edit" onclick="s_aliciDuzenle('${a.id}')">✎</button>
           <button class="btn-sm btn-del" onclick="s_aliciSil('${a.id}')">✕</button>
         </div>
-        <span id="s-arrow-${a.id}" style="color:var(--leaf);font-size:15px;margin-left:8px">⋁</span>
+        
       </div>
       <div id="s-detail-${a.id}" style="display:none;border-top:1px solid var(--border)">
         <div id="s-ozet-${a.id}" style="padding:10px 14px 6px"></div>
@@ -4123,7 +4119,7 @@ function s_toggleAlici(id) {
   if (!detail) return;
   const open = detail.style.display==='block';
   detail.style.display = open ? 'none' : 'block';
-  if (arrow) arrow.textContent = open ? '⋁' : '⋀';
+  if (arrow) 
   if (!open) { s_renderAliciOzet(id); s_renderAliciListe(id); }
 }
 async function s_aliciDuzenle(id) {
@@ -4556,7 +4552,7 @@ function renderRaporHasatDagilimi() {
           <div class="card-name">${urunAd}</div>
           <div style="font-size:12px;color:var(--muted);margin-top:2px">Toplam: <b>${toplam.toLocaleString('tr-TR')} ${birim}</b></div>
         </div>
-        <span style="color:var(--leaf);font-size:14px">⋁</span>
+        
       </div>
       <div id="${bodyId}" style="display:none;padding:12px 16px;background:var(--section-bg);border-top:1px solid var(--border)">
         ${satirlar}
