@@ -4609,7 +4609,7 @@ function renderRaporGelirGider() {
   const donemRows = donemler.map(([key, d]) => {
     const kar = d.satis - d.masraf;
     const kRenk = kar >= 0 ? 'var(--leaf)' : 'var(--red)';
-    return `<div style="display:grid;grid-template-columns:1fr 120px 120px 120px;gap:8px;padding:8px 12px;border-bottom:1px solid #f0ebe0;font-size:13px;align-items:center">
+    return `<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;padding:6px 10px;border-bottom:1px solid #f0ebe0;font-size:12px;align-items:center">
       <span style="font-weight:500;color:var(--text)">${key}</span>
       <span style="text-align:right;color:var(--leaf)">${fmt(d.satis)}</span>
       <span style="text-align:right;color:var(--red)">${d.masraf > 0 ? '-'+d.masraf.toLocaleString('tr-TR')+' ₺' : '—'}</span>
@@ -4624,7 +4624,7 @@ function renderRaporGelirGider() {
       <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#6a9478;margin-bottom:4px">Net Kar</div><div style="font-size:18px;font-weight:700;color:${karRenk}">${fmt(toplamKar)}</div></div>
     </div>
     <div style="background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 1px 8px rgba(30,61,42,0.08)">
-      <div style="display:grid;grid-template-columns:1fr 120px 120px 120px;gap:8px;padding:8px 12px;background:#f0f8f2;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;padding:6px 10px;background:#f0f8f2;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">
         <span>Dönem</span><span style="text-align:right">Satış</span><span style="text-align:right">Masraf</span><span style="text-align:right">Net Kar</span>
       </div>
       ${donemRows || '<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Veri yok</div>'}
@@ -4661,7 +4661,7 @@ function renderRaporAlici() {
   const rows = sirali.map(a => {
     const yuzde = toplamSatis > 0 ? Math.round(a.satis / toplamSatis * 100) : 0;
     const bRenk = a.bakiye >= 0 ? 'var(--leaf)' : 'var(--red)';
-    return `<div style="display:grid;grid-template-columns:40px 1fr 110px 110px 110px;gap:8px;padding:8px 12px;border-bottom:1px solid #f0ebe0;font-size:13px;align-items:center">
+    return `<div style="display:grid;grid-template-columns:32px 1fr 1fr 1fr 1fr;gap:3px;padding:5px 8px;border-bottom:1px solid #f0ebe0;font-size:11px;align-items:center">
       <span style="font-weight:700;color:var(--muted);font-size:12px">%${yuzde}</span>
       <span style="font-weight:500;color:var(--text)">${a.ad}</span>
       <span style="text-align:right;color:var(--leaf)">${fmt(a.satis)}</span>
@@ -4677,7 +4677,7 @@ function renderRaporAlici() {
       <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#6a9478;margin-bottom:4px">Bakiye</div><div style="font-size:18px;font-weight:700;color:${toplamBakiye>=0?'#6aab7d':'#e07070'}">${fmt(toplamBakiye)}</div></div>
     </div>
     <div style="background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 1px 8px rgba(30,61,42,0.08)">
-      <div style="display:grid;grid-template-columns:40px 1fr 110px 110px 110px;gap:8px;padding:8px 12px;background:#f0f8f2;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">
+      <div style="display:grid;grid-template-columns:32px 1fr 1fr 1fr 1fr;gap:3px;padding:5px 8px;background:#f0f8f2;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">
         <span></span><span>Alıcı</span><span style="text-align:right">Satış</span><span style="text-align:right">Ödeme</span><span style="text-align:right">Bakiye</span>
       </div>
       ${rows || '<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Veri yok</div>'}
@@ -4724,7 +4724,7 @@ function renderRaporUrun() {
     const yuzde = toplamSatis > 0 ? Math.round(u.satis / toplamSatis * 100) : 0;
     const kar = u.satis - u.masraf;
     const kRenk = kar >= 0 ? 'var(--leaf)' : 'var(--red)';
-    return `<div style="display:grid;grid-template-columns:24px 40px 1fr 110px 110px 110px;gap:8px;padding:8px 12px;border-bottom:1px solid #f0ebe0;font-size:13px;align-items:center" data-dnd-id="${u.id}">
+    return `<div style="display:grid;grid-template-columns:20px 28px 1fr 1fr 1fr 1fr;gap:3px;padding:5px 8px;border-bottom:1px solid #f0ebe0;font-size:11px;align-items:center" data-dnd-id="${u.id}">
       <span style="color:var(--muted);font-size:16px;cursor:grab">⠿</span>
       <span style="font-weight:700;color:var(--muted);font-size:12px">%${yuzde}</span>
       <span style="font-weight:500;color:var(--text)">${u.ad}</span>
@@ -4741,7 +4741,7 @@ function renderRaporUrun() {
       <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#6a9478;margin-bottom:4px">Net Kar</div><div style="font-size:18px;font-weight:700;color:${karRenk}">${fmt(toplamKar)}</div></div>
     </div>
     <div style="background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 1px 8px rgba(30,61,42,0.08)">
-      <div style="display:grid;grid-template-columns:40px 1fr 110px 110px 110px;gap:8px;padding:8px 12px;background:#f0f8f2;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">
+      <div style="display:grid;grid-template-columns:32px 1fr 1fr 1fr 1fr;gap:3px;padding:5px 8px;background:#f0f8f2;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">
         <span></span><span>Ürün</span><span style="text-align:right">Satış</span><span style="text-align:right">Masraf</span><span style="text-align:right">Net Kar</span>
       </div>
       ${rows || '<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Veri yok</div>'}
@@ -4799,6 +4799,28 @@ function siralaDndAktifEt(listEl, key, onReorder) {
       dragSrc = this;
       e.dataTransfer.effectAllowed = 'move';
       this.style.opacity = '0.5';
+    });
+    // Touch desteği
+    item.addEventListener('touchstart', function(e) {
+      dragSrc = this;
+      this.style.opacity = '0.5';
+    }, {passive:true});
+    item.addEventListener('touchmove', function(e) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      const dropTarget = target?.closest('[data-dnd-id]');
+      if (dropTarget && dropTarget !== dragSrc) {
+        const rect = dropTarget.getBoundingClientRect();
+        const mid = rect.top + rect.height/2;
+        if (touch.clientY < mid) listEl.insertBefore(dragSrc, dropTarget);
+        else listEl.insertBefore(dragSrc, dropTarget.nextSibling);
+      }
+    }, {passive:false});
+    item.addEventListener('touchend', function() {
+      this.style.opacity = '';
+      if (onReorder) onReorder();
+      else if (key) { const ids=[...listEl.querySelectorAll('[data-dnd-id]')].map(e=>e.dataset.dndId); setSiralama(key,ids); }
     });
     item.addEventListener('dragend', function() {
       this.style.opacity = '';
