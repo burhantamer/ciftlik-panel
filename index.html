@@ -1451,9 +1451,7 @@ async function syncFromAirtable() {
       .map(r => ({ id: r.id, ad: r.fields.ad || r.fields.Name || '' }));
     s_setAlicilar(yeniAlicilar);
 
-    // Satış ve ödeme verilerini Airtable'dan çek - localStorage'ı sıfırla
-    s_setSatisKayitlari({});
-    s_setOdemeler({});
+    // Satış ve ödeme verilerini Airtable'dan çek
     const satisRecs = await ATAPI_S.list('satislar');
     const odemeRecs = await ATAPI_S.list('odemeler');
     s_syncYukle(satisRecs, odemeRecs);
@@ -1469,6 +1467,9 @@ async function syncFromAirtable() {
 
     // Satış gelirlerini ürünlere yaz
     s_guncelleUrunGeliri();
+
+    // Satışlar modülü açıksa alıcı listesini yenile
+    s_renderAlicilar();
 
     hideLoading();
     toast('✓ Veriler güncellendi');
@@ -3947,41 +3948,9 @@ const ATAPI_S = {
   }
 };
 
-async function syncSatislar() {
-  try {
-    const recs = await ATAPI_S.list('satislar');
-    const satislar = {};
-    recs.forEach(r => {
-      if (!r.fields.tarih_id) return;
-      satislar[r.fields.tarih_id] = {
-        id: r.id,
-        netMiktar: r.fields.net_miktar != null ? String(r.fields.net_miktar) : '',
-        birimSec: r.fields.birim || '',
-        fiyat: r.fields.fiyat != null ? String(r.fields.fiyat) : ''
-      };
-    });
-    DB.set('satislar_v3', satislar);
 
-    const oRecs = await ATAPI_S.list('odemeler');
-    const odemeler = {};
-    oRecs.forEach(r => {
-      const aid = r.fields.alici_id;
-      if (!odemeler[aid]) odemeler[aid] = [];
-      odemeler[aid].push({
-        id: r.id,
-        donemKey: r.fields.donem || '',
-        tarih: r.fields.tarih || null,
-        tutar: r.fields.tutar || 0,
-        acik: r.fields.aciklama || ''
-      });
-    });
-    DB.set('odemeler_v1', odemeler);
-    toast('Satışlar güncellendi ✓');
-  } catch(e) { toast('❌ ' + e.message); }
-}
 
 async function initSatislar() {
-  await syncSatislar();
   s_renderAlicilar();
   // Tüm accordion'ları kapat
   setTimeout(() => {
@@ -3997,66 +3966,36 @@ async function initSatislar() {
 // ── Sabit test verisi ──
 
 // ── Storage ──
-function s_getSatislar() { return DB.get('satislar_v3') || {}; }
-function s_setSatislar(d) { DB.set('satislar_v3', d); }
-function s_getOdemeler() { return DB.get('s_odemeler') || {}; }
-function s_setOdemeler(d) { DB.set('s_odemeler', d); }
+// ══════════════════════ SATIŞLAR MODÜLÜ ══════════════════════
+// Veri yapısı:
+// s_alicilar: [{id, ad}] - Airtable satis_alicilari tablosundan
+// s_satis_kayitlari: {aliciId: [{id:kayitId, tarih, urunler:[{id,airtableId,urunId,urunAd,miktar,birim,fiyat,tutar}]}]}
+// s_odemeler: {aliciId: [{id:airtableId, tutar, tarih, acik}]}
+
 function s_getAlicilar() { return DB.get('s_alicilar') || []; }
 function s_setAlicilar(d) { DB.set('s_alicilar', d); }
 function s_getSatisKayitlari() { return DB.get('s_satis_kayitlari') || {}; }
 function s_setSatisKayitlari(d) { DB.set('s_satis_kayitlari', d); }
+function s_getOdemeler() { return DB.get('s_odemeler') || {}; }
+function s_setOdemeler(d) { DB.set('s_odemeler', d); }
+function s_getSatislar() {
+  const satislar = {};
+  Object.values(s_getSatisKayitlari()).forEach(ak => ak.forEach(k => k.urunler.forEach(u => {
+    satislar[u.satirId||u.id] = {id:u.airtableId, netMiktar:u.miktar, birimSec:u.birim, fiyat:u.fiyat};
+  })));
+  return satislar;
+}
 function s_fmtPara(n) { return (parseFloat(n)||0).toLocaleString('tr-TR') + ' ₺'; }
-let s_currentAliciId = null, s_editingId = null;
+
+let s_currentAliciId = null;
+let s_editingId = null;
+
+// ─── Init ───
 function initSatislar() {
   s_renderAlicilar();
 }
 
-async function s_migrateAlicilar() {
-  let alicilar = s_getAlicilar();
-  // Boş adlı alıcıları temizle
-  alicilar = alicilar.filter(a => a.ad && a.ad.trim());
-
-  const kayitlar = s_getSatisKayitlari();
-  const odemeler = s_getOdemeler();
-
-  // Airtable'daki güncel alıcıları çek
-  let atAlicilar = [];
-  try {
-    atAlicilar = await ATAPI_S.list('satis_alicilari');
-  } catch(e) { return; }
-
-  // Her sa_ alıcısı için: Airtable'da aynı adlı var mı? Varsa ID'yi güncelle, yoksa oluştur
-  for (const a of alicilar) {
-    if (!a.id.startsWith('sa_')) continue;
-    const eskiId = a.id;
-    // Airtable'da aynı adlı alıcıyı bul
-    const atEsles = atAlicilar.find(r => (r.fields.ad||r.fields.Name||'').trim() === a.ad.trim());
-    let yeniId;
-    if (atEsles) {
-      yeniId = atEsles.id;
-    } else {
-      try {
-        const rec = await ATAPI_S.create('satis_alicilari', { ad: a.ad });
-        yeniId = rec.id;
-      } catch(e) { continue; }
-    }
-    a.id = yeniId;
-    // Satış kayıtlarını yeni ID ile taşı
-    if (kayitlar[eskiId]) {
-      kayitlar[yeniId] = kayitlar[eskiId];
-      delete kayitlar[eskiId];
-    }
-    if (odemeler[eskiId]) {
-      odemeler[yeniId] = odemeler[eskiId];
-      delete odemeler[eskiId];
-    }
-  }
-
-  s_setSatisKayitlari(kayitlar);
-  s_setOdemeler(odemeler);
-  s_setAlicilar(alicilar);
-  s_renderAlicilar();
-}
+// ─── Alıcı Formu ───
 function s_aliciFormAc() {
   document.getElementById('s-alici-ekle-form').style.display='block';
   document.getElementById('s-alici-ekle-btn').style.display='none';
@@ -4067,6 +4006,7 @@ function s_aliciFormKapat() {
   document.getElementById('s-alici-ekle-form').style.display='none';
   document.getElementById('s-alici-ekle-btn').style.display='inline-flex';
 }
+
 async function s_aliciKaydet() {
   const ad = document.getElementById('s-alici-ad').value.trim();
   if (!ad) { toast('Alıcı adı giriniz'); return; }
@@ -4081,6 +4021,8 @@ async function s_aliciKaydet() {
     s_renderAlicilar();
   } catch(e) { hideLoading(); toast('❌ '+e.message); }
 }
+
+// ─── Alıcı Listesi ───
 function s_renderAlicilar() {
   const el = document.getElementById('s-alici-list');
   if (!el) return;
@@ -4089,13 +4031,12 @@ function s_renderAlicilar() {
   el.innerHTML = alicilar.map(a => `
     <div class="card" style="margin-bottom:10px" data-dnd-id="${a.id}">
       <div style="display:flex;align-items:center;padding:14px 16px;cursor:pointer" onclick="s_toggleAlici('${a.id}')">
-        <span style="color:var(--muted);font-size:16px;cursor:grab;padding-right:8px" title="Sürükle">⠿</span>
+        <span style="color:var(--muted);font-size:16px;cursor:grab;padding-right:8px;flex-shrink:0" onclick="event.stopPropagation()">⠿</span>
         <span class="card-name" style="flex:1">${a.ad}</span>
         <div style="display:flex;gap:6px" onclick="event.stopPropagation()">
           <button class="btn-sm btn-edit" onclick="s_aliciDuzenle('${a.id}')">✎</button>
           <button class="btn-sm btn-del" onclick="s_aliciSil('${a.id}')">✕</button>
         </div>
-        
       </div>
       <div id="s-detail-${a.id}" style="display:none;border-top:1px solid var(--border)">
         <div id="s-ozet-${a.id}" style="padding:10px 14px 6px"></div>
@@ -4109,19 +4050,18 @@ function s_renderAlicilar() {
   siralaDndAktifEt(el, 's_alicilar', () => {
     const newIds = [...el.querySelectorAll('[data-dnd-id]')].map(e => e.dataset.dndId);
     const alicilar = s_getAlicilar();
-    const sorted = newIds.map(id => alicilar.find(a => a.id === id)).filter(Boolean);
-    s_setAlicilar(sorted);
+    s_setAlicilar(newIds.map(id => alicilar.find(a => a.id===id)).filter(Boolean));
   });
 }
+
 function s_toggleAlici(id) {
   const detail = document.getElementById('s-detail-'+id);
-  const arrow = document.getElementById('s-arrow-'+id);
   if (!detail) return;
   const open = detail.style.display==='block';
   detail.style.display = open ? 'none' : 'block';
-  if (arrow) 
   if (!open) { s_renderAliciOzet(id); s_renderAliciListe(id); }
 }
+
 async function s_aliciDuzenle(id) {
   const alicilar = s_getAlicilar();
   const a = alicilar.find(x => x.id===id);
@@ -4137,6 +4077,7 @@ async function s_aliciDuzenle(id) {
     s_renderAlicilar();
   } catch(e) { hideLoading(); toast('❌ '+e.message); }
 }
+
 async function s_aliciSil(id) {
   if ((s_getSatisKayitlari()[id]||[]).length||(s_getOdemeler()[id]||[]).length) { toast('⚠️ Kayıt var, silinemez'); return; }
   if (!confirm('Alıcıyı silmek istiyor musunuz?')) return;
@@ -4148,6 +4089,8 @@ async function s_aliciSil(id) {
     s_renderAlicilar();
   } catch(e) { hideLoading(); toast('❌ '+e.message); }
 }
+
+// ─── Özet ───
 function s_renderAliciOzet(aliciId) {
   const el = document.getElementById('s-ozet-'+aliciId);
   if (!el) return;
@@ -4172,11 +4115,8 @@ function s_renderAliciOzet(aliciId) {
     <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${pillHTML}</div>`;
   s_guncelleUrunGeliri();
 }
-function s_toggleAy(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = el.style.display==='none' ? 'block' : 'none';
-}
+
+// ─── Liste ───
 function s_renderAliciListe(aliciId) {
   const el = document.getElementById('s-liste-'+aliciId);
   if (!el) return;
@@ -4189,6 +4129,7 @@ function s_renderAliciListe(aliciId) {
   aliciOdemeler.forEach(o=>tumKalemler.push({tip:'odeme',id:o.id,tarih:o.tarih,tutar:o.tutar,acik:o.acik}));
   tumKalemler.sort((a,b)=>(b.tarih||'').localeCompare(a.tarih||''));
   if (!tumKalemler.length) { el.innerHTML='<div style="font-size:13px;color:var(--muted);padding:8px 0">Henüz kayıt yok</div>'; return; }
+
   const _AK = {Ocak:'OCA',Şubat:'ŞUB',Mart:'MAR',Nisan:'NİS',Mayıs:'MAY',Haziran:'HAZ',Temmuz:'TEM',Ağustos:'AĞU',Eylül:'EYL',Ekim:'EKİ',Kasım:'KAS',Aralık:'ARA'};
   const _AA = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
   const ayGruplari = {}, ayOrder = [];
@@ -4198,26 +4139,31 @@ function s_renderAliciListe(aliciId) {
     if (!ayGruplari[ayAd]) { ayGruplari[ayAd]=[]; ayOrder.push(ayAd); }
     ayGruplari[ayAd].push(k);
   });
+
+  let _sonTarihS = null;
   const satirFn = (k) => {
     const [y,m,d]=(k.tarih||'').split('-');
     const tg=d?`${d}.${m}.${y}`:'—';
+    const tarihGosterilsin = k.tarih !== _sonTarihS;
+    _sonTarihS = k.tarih;
     if (k.tip==='satis') {
       const detay=k.miktar&&k.fiyat?`${k.miktar} ${k.birim} × ${parseFloat(k.fiyat).toLocaleString('tr-TR')} ₺`:'';
       return `<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid #f0ebe0;gap:6px;font-size:13px">
-        <span class="masraf-tarih-badge">${tg}</span>
-        <span style="flex:1"><b>${k.urunAd}</b> <span style="color:var(--muted);font-size:12px">${detay}</span></span>
+        ${tarihGosterilsin?`<span class="masraf-tarih-badge">${tg}</span>`:`<span style="min-width:72px"></span>`}
+        <span style="flex:1">${k.urunAd} <span style="color:var(--muted);font-size:12px">${detay}</span></span>
         <span style="font-weight:700;color:var(--leaf);white-space:nowrap">+${s_fmtPara(k.tutar)}</span>
         <div style="position:relative;display:inline-block"><button onclick="s_satirMenu(this,'${aliciId}','${k.kayitId}','${k.urunId}','satis')" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted);padding:0 4px">⋮</button></div>
       </div>`;
     } else {
       return `<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid #f0ebe0;gap:6px;font-size:13px">
-        <span class="masraf-tarih-badge">${tg}</span>
-        <span style="color:var(--subtext);flex:1">${k.acik||'ödeme'}</span>
+        ${tarihGosterilsin?`<span class="masraf-tarih-badge">${tg}</span>`:`<span style="min-width:72px"></span>`}
+        <span style="flex:1;color:var(--red)">${k.acik||'Ödeme'}</span>
         <span style="font-weight:700;color:var(--red);white-space:nowrap">-${s_fmtPara(k.tutar)}</span>
         <div style="position:relative;display:inline-block"><button onclick="s_satirMenu(this,'${aliciId}','${k.id}',null,'odeme')" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted);padding:0 4px">⋮</button></div>
       </div>`;
     }
   };
+
   el.innerHTML = ayOrder.map(ayAd => {
     const _ay=ayAd.split(' ')[0], _yil=ayAd.split(' ')[1]||'';
     const _k=(_AK[_ay]||_ay.slice(0,3).toUpperCase())+_yil.slice(2);
@@ -4228,6 +4174,13 @@ function s_renderAliciListe(aliciId) {
     </div>`;
   }).join('');
 }
+
+function s_toggleAy(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
+}
+
 function s_satirMenu(btn,aliciId,id1,id2,tip) {
   document.querySelectorAll('.s-satir-menu').forEach(m=>m.remove());
   const menu=document.createElement('div');
@@ -4244,6 +4197,8 @@ function s_satirMenu(btn,aliciId,id1,id2,tip) {
   btn.parentElement.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',function h(e){if(!menu.contains(e.target)){menu.remove();document.removeEventListener('click',h);}}),10);
 }
+
+// ─── Satış Modal ───
 function s_acSatisModal(aliciId) {
   s_currentAliciId=aliciId;
   document.getElementById('s-satis-tarih').value='';
@@ -4251,6 +4206,7 @@ function s_acSatisModal(aliciId) {
   s_satisSatirEkle();
   openModal('s-satis-modal');
 }
+
 function s_satisSatirEkle() {
   const el=document.getElementById('s-satis-satirlar');
   const urunOptions=getUrunler().map(u=>`<option value="${u.id}" data-ad="${u.ad}" data-birim="${u.birim}">${u.ad}</option>`).join('');
@@ -4274,6 +4230,7 @@ function s_satisSatirEkle() {
     <button onclick="this.closest('div[style]').remove()" style="background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;margin-top:4px">× Kaldır</button>`;
   el.appendChild(satir);
 }
+
 function s_satirUrunSecildi(sel) {
   const birim=sel.options[sel.selectedIndex]?.dataset?.birim||'kg';
   const row=sel.closest('div[style]');
@@ -4281,6 +4238,7 @@ function s_satirUrunSecildi(sel) {
   const birimSel=row.querySelectorAll('select')[1];
   if (birimSel) birimSel.value=birim;
 }
+
 function s_satirToplam(inp) {
   const satir=inp.closest('div[style]');
   if (!satir) return;
@@ -4289,6 +4247,7 @@ function s_satirToplam(inp) {
   const t=satir.querySelector('.s-satir-toplam');
   if (t) t.textContent=m2&&f?(m2*f).toLocaleString('tr-TR')+' ₺':'—';
 }
+
 async function s_satisKaydet() {
   const tarih=document.getElementById('s-satis-tarih').value;
   if (!tarih) { toast('Tarih seçiniz'); return; }
@@ -4306,22 +4265,36 @@ async function s_satisKaydet() {
   if (!urunler.length) { toast('En az bir ürün giriniz'); return; }
   showLoading('Kaydediliyor...');
   try {
-    const kayitlar=s_getSatisKayitlari();
-    if (!kayitlar[s_currentAliciId]) kayitlar[s_currentAliciId]=[];
     const kayitId='sk_'+Date.now();
     for (const u of urunler) {
       const satirId=kayitId+'_'+u.id;
-      const rec=await ATAPI_S.create('satislar',{tarih_id:s_currentAliciId+'_'+tarih,alici_id:s_currentAliciId,net_miktar:u.miktar,birim:u.birim,fiyat:u.fiyat,satir_id:satirId});
-      u.airtableId=rec.id; u.satirId=satirId;
+      const rec=await ATAPI_S.create('satislar',{
+        tarih: tarih,
+        alici_id: s_currentAliciId,
+        net_miktar: u.miktar,
+        birim: u.birim,
+        fiyat: u.fiyat,
+        satir_id: satirId,
+        urun_ad: u.urunAd||'',
+        urun_id: u.urunId||'',
+        kayit_id: kayitId
+      });
+      u.airtableId=rec.id;
+      u.satirId=satirId;
     }
+    // Airtable başarılı → localStorage'a ekle
+    const kayitlar=s_getSatisKayitlari();
+    if (!kayitlar[s_currentAliciId]) kayitlar[s_currentAliciId]=[];
     kayitlar[s_currentAliciId].push({id:kayitId,tarih,urunler});
     s_setSatisKayitlari(kayitlar);
     s_guncelleUrunGeliri();
     hideLoading(); toast('Kaydedildi ✓');
     closeModal('s-satis-modal');
-    s_renderAliciOzet(s_currentAliciId); s_renderAliciListe(s_currentAliciId);
+    s_renderAliciOzet(s_currentAliciId);
+    s_renderAliciListe(s_currentAliciId);
   } catch(e) { hideLoading(); toast('❌ '+e.message); }
 }
+
 function s_satisDuzenleAc(aliciId,kayitId,urunId) {
   s_currentAliciId=aliciId; s_editingId={kayitId,urunId};
   const kayit=(s_getSatisKayitlari()[aliciId]||[]).find(k=>k.id===kayitId);
@@ -4335,6 +4308,7 @@ function s_satisDuzenleAc(aliciId,kayitId,urunId) {
   document.getElementById('s-d-fiyat').value=urun.fiyat||'';
   openModal('s-satis-duzenle-modal');
 }
+
 async function s_satisGuncelle() {
   const {kayitId,urunId}=s_editingId||{};
   if (!kayitId) return;
@@ -4350,8 +4324,10 @@ async function s_satisGuncelle() {
     const kayitlar=s_getSatisKayitlari();
     const kayit=(kayitlar[s_currentAliciId]||[]).find(k=>k.id===kayitId);
     const urun=kayit?.urunler?.find(u=>u.id===urunId);
+    if (urun?.airtableId) {
+      await ATAPI_S.update('satislar',urun.airtableId,{net_miktar:miktar,birim,fiyat,urun_ad:urunAd,urun_id:urunId2,tarih});
+    }
     if (urun) {
-      if (urun.airtableId) await ATAPI_S.update('satislar',urun.airtableId,{net_miktar:miktar,birim,fiyat});
       kayit.tarih=tarih;
       Object.assign(urun,{urunId:urunId2,urunAd,miktar,birim,fiyat,tutar:miktar*fiyat});
     }
@@ -4359,9 +4335,11 @@ async function s_satisGuncelle() {
     s_guncelleUrunGeliri();
     hideLoading(); toast('Güncellendi ✓');
     closeModal('s-satis-duzenle-modal');
-    s_renderAliciOzet(s_currentAliciId); s_renderAliciListe(s_currentAliciId);
+    s_renderAliciOzet(s_currentAliciId);
+    s_renderAliciListe(s_currentAliciId);
   } catch(e) { hideLoading(); toast('❌ '+e.message); }
 }
+
 async function s_satisKaydiSil(aliciId,kayitId,urunId) {
   if (!confirm('Bu satışı silmek istiyor musunuz?')) return;
   showLoading('Siliniyor...');
@@ -4377,14 +4355,18 @@ async function s_satisKaydiSil(aliciId,kayitId,urunId) {
     s_setSatisKayitlari(kayitlar);
     s_guncelleUrunGeliri();
     hideLoading(); toast('Silindi ✓');
-    s_renderAliciOzet(aliciId); s_renderAliciListe(aliciId);
+    s_renderAliciOzet(aliciId);
+    s_renderAliciListe(aliciId);
   } catch(e) { hideLoading(); toast('❌ '+e.message); }
 }
+
+// ─── Ödeme Modal ───
 function s_acOdemeModal(aliciId) {
   s_currentAliciId=aliciId;
   ['s-odeme-tutar','s-odeme-tarih','s-odeme-acik'].forEach(id=>document.getElementById(id).value='');
   openModal('s-odeme-modal');
 }
+
 async function s_odemeKaydet() {
   const tutar=parseFloat(document.getElementById('s-odeme-tutar').value);
   const tarih=document.getElementById('s-odeme-tarih').value;
@@ -4400,20 +4382,25 @@ async function s_odemeKaydet() {
     s_setOdemeler(odemeler);
     hideLoading(); toast('Kaydedildi ✓');
     closeModal('s-odeme-modal');
-    s_renderAliciOzet(s_currentAliciId); s_renderAliciListe(s_currentAliciId);
+    s_renderAliciOzet(s_currentAliciId);
+    s_renderAliciListe(s_currentAliciId);
   } catch(e) { hideLoading(); toast('❌ '+e.message); }
 }
+
 async function s_odemeAcikSil(aliciId,odemeId) {
   if (!confirm('Bu ödemeyi silmek istiyor musunuz?')) return;
+  showLoading('Siliniyor...');
   try {
     await ATAPI_S.delete('odemeler',odemeId);
     const odemeler=s_getOdemeler();
     if (odemeler[aliciId]) odemeler[aliciId]=odemeler[aliciId].filter(o=>o.id!==odemeId);
     s_setOdemeler(odemeler);
-    toast('Silindi ✓');
-  } catch(e) { toast('❌ '+e.message); }
-  s_renderAliciOzet(aliciId); s_renderAliciListe(aliciId);
+    hideLoading(); toast('Silindi ✓');
+    s_renderAliciOzet(aliciId);
+    s_renderAliciListe(aliciId);
+  } catch(e) { hideLoading(); toast('❌ '+e.message); }
 }
+
 function s_odemeDuzenleAc(aliciId,odemeId) {
   s_currentAliciId=aliciId;
   const o=(s_getOdemeler()[aliciId]||[]).find(x=>x.id===odemeId);
@@ -4424,23 +4411,29 @@ function s_odemeDuzenleAc(aliciId,odemeId) {
   window._s_duzenleOdemeId=odemeId;
   openModal('odeme-duzenle-modal');
 }
+
 function s_odemeDuzenleKapat() { closeModal('odeme-duzenle-modal'); }
+
 async function s_odemeKaydetDuzenle() {
   const aliciId=s_currentAliciId, odemeId=window._s_duzenleOdemeId;
   const tutar=parseFloat(document.getElementById('od-edit-tutar').value);
   const tarih=document.getElementById('od-edit-tarih').value;
   const acik=document.getElementById('od-edit-acik').value.trim();
   if (!tutar||!tarih) { toast('Tutar ve tarih giriniz'); return; }
+  showLoading('Güncelleniyor...');
   try {
     await ATAPI_S.update('odemeler',odemeId,{tutar,tarih,aciklama:acik});
     const odemeler=s_getOdemeler();
     const o=(odemeler[aliciId]||[]).find(x=>x.id===odemeId);
     if (o) { o.tutar=tutar; o.tarih=tarih; o.acik=acik; }
     s_setOdemeler(odemeler);
-    s_odemeDuzenleKapat(); toast('Güncellendi ✓');
-    s_renderAliciOzet(aliciId); s_renderAliciListe(aliciId);
-  } catch(e) { toast('❌ '+e.message); }
+    hideLoading(); s_odemeDuzenleKapat(); toast('Güncellendi ✓');
+    s_renderAliciOzet(aliciId);
+    s_renderAliciListe(aliciId);
+  } catch(e) { hideLoading(); toast('❌ '+e.message); }
 }
+
+// ─── Ürün Geliri ───
 function s_guncelleUrunGeliri() {
   const kayitlar=s_getSatisKayitlari();
   const urunler=getUrunler();
@@ -4453,28 +4446,34 @@ function s_guncelleUrunGeliri() {
   setUrunler(urunler);
   if (typeof uCurrentUrunId!=='undefined'&&uCurrentUrunId) renderStatsFor(uCurrentUrunId);
 }
-function s_getSatislar() {
-  const satislar={};
-  Object.values(s_getSatisKayitlari()).forEach(ak=>ak.forEach(k=>k.urunler.forEach(u=>{
-    satislar[u.satirId||u.id]={id:u.airtableId,netMiktar:u.miktar,birimSec:u.birim,fiyat:u.fiyat};
-  })));
-  return satislar;
-}
-function s_syncYukle(satisRecs,odemeRecs) {
+
+// ─── Sync ───
+function s_syncYukle(satisRecs, odemeRecs) {
+  // Airtable verilerini localStorage'a yükle (cache)
   const km={};
   satisRecs.forEach(r=>{
     const aliciId=r.fields.alici_id;
-    // sa_ ile başlayan eski kayıtları atla
-    if (!aliciId || aliciId.startsWith('sa_')) return;
+    if (!aliciId) return;
     if (!km[aliciId]) km[aliciId]={};
-    const tk=r.fields.tarih_id||r.id;
-    const tarih=r.fields.tarih||(r.fields.tarih_id||'').split('_').pop()||'';
-    if (!km[aliciId][tk]) km[aliciId][tk]={id:tk,tarih,urunler:[]};
-    km[aliciId][tk].urunler.push({id:r.fields.satir_id||r.id,airtableId:r.id,satirId:r.fields.satir_id||r.id,urunId:r.fields.urun_id||'',urunAd:r.fields.urun_ad||'',miktar:r.fields.net_miktar||0,birim:r.fields.birim||'kg',fiyat:r.fields.fiyat||0,tutar:(r.fields.net_miktar||0)*(r.fields.fiyat||0)});
+    const kayitId=r.fields.kayit_id||r.id;
+    const tarih=r.fields.tarih||'';
+    if (!km[aliciId][kayitId]) km[aliciId][kayitId]={id:kayitId,tarih,urunler:[]};
+    km[aliciId][kayitId].urunler.push({
+      id: r.fields.satir_id||r.id,
+      airtableId: r.id,
+      satirId: r.fields.satir_id||r.id,
+      urunId: r.fields.urun_id||'',
+      urunAd: r.fields.urun_ad||'',
+      miktar: r.fields.net_miktar||0,
+      birim: r.fields.birim||'kg',
+      fiyat: r.fields.fiyat||0,
+      tutar: (r.fields.net_miktar||0)*(r.fields.fiyat||0)
+    });
   });
   const kayitlar={};
   Object.entries(km).forEach(([id,tm])=>{kayitlar[id]=Object.values(tm);});
   s_setSatisKayitlari(kayitlar);
+
   const odemeler={};
   odemeRecs.forEach(r=>{
     const aliciId=r.fields.alici_id;
@@ -4485,10 +4484,13 @@ function s_syncYukle(satisRecs,odemeRecs) {
   s_setOdemeler(odemeler);
 }
 
+
 function switchRaporTab(tab) {
   ['gelir','alici','urun','hasat'].forEach(t => {
-    document.getElementById('r-tab-'+t).classList.toggle('active', t===tab);
-    document.getElementById('r-panel-'+t).style.display = t===tab ? 'block' : 'none';
+    const tabEl = document.getElementById('r-tab-'+t);
+    const panelEl = document.getElementById('r-panel-'+t);
+    if (tabEl) tabEl.classList.toggle('active', t===tab);
+    if (panelEl) panelEl.style.display = t===tab ? 'block' : 'none';
   });
   if (tab === 'hasat') renderRaporHasatDagilimi();
 }
@@ -4496,10 +4498,7 @@ function switchRaporTab(tab) {
 function renderRaporHasatDagilimi() {
   const el = document.getElementById('r-panel-hasat');
   if (!el) return;
-
   const alicilar = getAlicilar();
-
-  // Ürün bazlı hasat toplamları hesapla
   const urunHasat = {};
   alicilar.forEach(a => {
     (a.donemler||[]).forEach(d => (d.tarihler||[]).forEach(t => (t.urunler||[]).forEach(u => {
@@ -4513,57 +4512,37 @@ function renderRaporHasatDagilimi() {
       urunHasat[urunAd].alicilar[aliciAd] = (urunHasat[urunAd].alicilar[aliciAd] || 0) + miktar;
     })));
   });
-
-  if (!Object.keys(urunHasat).length) {
-    el.innerHTML = '<div class="empty"><p>Henüz hasat verisi yok</p></div>';
-    return;
-  }
-
+  if (!Object.keys(urunHasat).length) { el.innerHTML = '<div class="empty"><p>Henüz hasat verisi yok</p></div>'; return; }
   const RENKLER = ['#6aab7d','#5b9bd5','#9b7fc7','#c06060','#c8a84b','#5a9e8f','#a07850'];
-
-  // Toplam hasata göre büyükten küçüğe sırala
   const sirali = Object.entries(urunHasat).sort((a,b) => b[1].toplam - a[1].toplam);
-
-  el.innerHTML = `<div style="margin-bottom:16px">` + sirali.map(([urunAd, data], urunIdx) => {
+  el.innerHTML = '<div>' + sirali.map(([urunAd, data], urunIdx) => {
     const { toplam, birim, alicilar: aliciDagilim } = data;
-    const satirlar = Object.entries(aliciDagilim)
-      .sort((a,b) => b[1] - a[1])
-      .map(([aliciAd, miktar], i) => {
-        const yuzde = toplam > 0 ? Math.round(miktar / toplam * 100) : 0;
-        const renk = RENKLER[i % RENKLER.length];
-        return `<div style="margin-bottom:10px">
-          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--subtext);margin-bottom:4px">
-            <span style="font-weight:500">${aliciAd}</span>
-            <span>${miktar.toLocaleString('tr-TR')} ${birim}</span>
-          </div>
-          <div style="background:#f0ebe0;border-radius:6px;height:22px;overflow:hidden">
-            <div style="width:${yuzde}%;background:${renk};height:100%;border-radius:6px;display:flex;align-items:center;justify-content:center;min-width:28px;transition:width 0.3s">
-              <span style="font-size:11px;font-weight:600;color:#fff">%${yuzde}</span>
-            </div>
-          </div>
-        </div>`;
-      }).join('');
-
-    const bodyId = 'rh-body-' + urunIdx;
-    return `<div class="card" style="margin-bottom:10px;overflow:hidden" data-dnd-id="${urunAd}">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer" onclick="(function(){const b=document.getElementById('${bodyId}');const open=b.style.display!=='none';b.style.display=open?'none':'block';})()">
-        <span style="color:var(--muted);font-size:16px;cursor:grab;padding-right:8px;flex-shrink:0" onclick="event.stopPropagation()">⠿</span>
-        <div style="flex:1">
-          <div class="card-name">${urunAd}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">Toplam: <b>${toplam.toLocaleString('tr-TR')} ${birim}</b></div>
+    const satirlar = Object.entries(aliciDagilim).sort((a,b)=>b[1]-a[1]).map(([aliciAd,miktar],i) => {
+      const yuzde = toplam>0?Math.round(miktar/toplam*100):0;
+      const renk = RENKLER[i%RENKLER.length];
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--subtext);margin-bottom:4px">
+          <span style="font-weight:500">${aliciAd}</span><span>${miktar.toLocaleString('tr-TR')} ${birim}</span>
         </div>
-        
+        <div style="background:#f0ebe0;border-radius:6px;height:22px;overflow:hidden">
+          <div style="width:${yuzde}%;background:${renk};height:100%;border-radius:6px;display:flex;align-items:center;justify-content:center;min-width:28px">
+            <span style="font-size:11px;font-weight:600;color:#fff">%${yuzde}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    const bodyId = 'rh-body-'+urunIdx;
+    return `<div class="card" style="margin-bottom:10px;overflow:hidden" data-dnd-id="${urunAd}">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer" onclick="(function(){const b=document.getElementById('${bodyId}');b.style.display=b.style.display==='none'?'block':'none';})()">
+        <span style="color:var(--muted);font-size:16px;cursor:grab;padding-right:8px;flex-shrink:0" onclick="event.stopPropagation()">⠿</span>
+        <div style="flex:1"><div class="card-name">${urunAd}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Toplam: <b>${toplam.toLocaleString('tr-TR')} ${birim}</b></div></div>
       </div>
-      <div id="${bodyId}" style="display:none;padding:12px 16px;background:var(--section-bg);border-top:1px solid var(--border)">
-        ${satirlar}
-      </div>
+      <div id="${bodyId}" style="display:none;padding:12px 16px;background:var(--section-bg);border-top:1px solid var(--border)">${satirlar}</div>
     </div>`;
-  }).join('') + `</div>`;
-  // Sürükle-bırak
+  }).join('') + '</div>';
   const _rhList = el.querySelector('div');
   siralaDndAktifEt(_rhList, 'rapor_hasat_sirala');
 }
-
 
 function initRaporlar() {
   renderRaporGelirGider();
@@ -4576,14 +4555,13 @@ function getRaporVerileri() {
   const gecerliDonemRegex = /^(Ocak|Şubat|Mart|Nisan|Mayıs|Haziran|Temmuz|Ağustos|Eylül|Ekim|Kasım|Aralık) \d{4}$/;
   const donemMap = {};
 
-  // Satışlar - yeni s_getSatisKayitlari yapısından
+  // Satışlar
   const satisKayitlari = s_getSatisKayitlari();
   Object.values(satisKayitlari).forEach(aliciKayitlar => {
     aliciKayitlar.forEach(k => {
       k.urunler.forEach(u => {
         const tutar = parseFloat(u.tutar)||0;
         if (!tutar) return;
-        // Tarihten dönem adını bul
         const [yil, ay] = (k.tarih||'').split('-');
         if (!yil || !ay) return;
         const AYLAR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
@@ -4599,12 +4577,8 @@ function getRaporVerileri() {
   harcDonemler.forEach(d => {
     if (!gecerliDonemRegex.test(d.key)) return;
     if (!donemMap[d.key]) donemMap[d.key] = { satis: 0, masraf: 0 };
-    (d.masraflar||[]).forEach(m => {
-      donemMap[d.key].masraf += parseFloat(m.tutar)||0;
-    });
+    (d.masraflar||[]).forEach(m => { donemMap[d.key].masraf += parseFloat(m.tutar)||0; });
   });
-
-
 
   const alicilar = s_getAlicilar();
   const satislar = s_getSatislar();
