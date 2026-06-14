@@ -499,7 +499,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
     <h1 id="headerTitle">🌾 Çiftlik Panel</h1>
     <span style="min-width:50px"></span>
   </div>
-  <button onclick="syncFromAirtable().then(()=>{renderUrunler();renderAlicilar();})" style="position:absolute;right:20px;top:18px;background:none;border:1px solid #3d6b45;color:#a0c8b0;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">⟳</button>
+  <button onclick="syncFromAirtable().then(()=>{renderUrunler();renderAlicilar();})" style="position:absolute;right:20px;top:18px;background:none;border:1px solid #3d6b45;color:#a0c8b0;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">⟳ Yenile</button>
 </div>
 
 <!-- ═══════════════════════════════ ÜRÜNLER MODÜLÜ ═══════════════════════════════ -->
@@ -1229,10 +1229,12 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
       <div class="sekme active" id="r-tab-gelir" onclick="switchRaporTab('gelir')">Gelir-Gider</div>
       <div class="sekme" id="r-tab-alici" onclick="switchRaporTab('alici')">Alıcı Bazlı</div>
       <div class="sekme" id="r-tab-urun" onclick="switchRaporTab('urun')">Ürün Karlılığı</div>
+      <div class="sekme" id="r-tab-hasat" onclick="switchRaporTab('hasat')">Hasat Dağılımı</div>
     </div>
     <div id="r-panel-gelir"></div>
     <div id="r-panel-alici" style="display:none"></div>
     <div id="r-panel-urun" style="display:none"></div>
+    <div id="r-panel-hasat" style="display:none"></div>
   </div>
 </div>
 
@@ -1966,7 +1968,8 @@ function renderEkilişlerFor(id) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><p>Henüz ekiliş eklenmedi</p></div>';
     return;
   }
-  el.innerHTML = urun.partiler.map(p => `
+  const siraliPartiler = [...(urun.partiler||[])].sort((a,b) => (b.ekim||'').localeCompare(a.ekim||''));
+  el.innerHTML = siraliPartiler.map(p => `
     <div style="border-bottom:1px solid #f0ebe0">
       <div style="display:flex;align-items:center;padding:6px 12px;gap:6px;cursor:pointer" onclick="toggleParti('${p.id}')">
         <div style="flex:1;display:flex;align-items:center;gap:8px;overflow:hidden">
@@ -2748,7 +2751,12 @@ function renderDonemlerFor(aliciId) {
 
   // Her ay için HTML
   let html = '';
-  Object.entries(ayGruplari).forEach(([ayAd, rows]) => {
+  // Dönemleri en yeniden eskiye sırala
+  const siraliAylar = Object.entries(ayGruplari).sort((a, b) => {
+    const parse = s => { const [ad,yil] = s.split(' '); const AYLAR2=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık']; return parseInt(yil)*12+AYLAR2.indexOf(ad); };
+    return parse(b[0]) - parse(a[0]);
+  });
+  siraliAylar.forEach(([ayAd, rows]) => {
     const ayId = ayAd.replace(/\s+/g, '_');
     // Ay toplamları
     const toplamMap = {};
@@ -2762,12 +2770,15 @@ function renderDonemlerFor(aliciId) {
     }).join('');
 
     // Satırlar
+    let _sonTarih = null;
     const satirHtml = rows.map(r => {
       const iso = tarihToISO(r.tarih) || r.tarih || '';
       const [yil, ay, gun] = iso.split('-');
       const tarihGoster = gun && ay && yil ? `${gun}.${ay}.${yil}` : r.tarih;
+      const tarihGosterilsin = iso !== _sonTarih;
+      _sonTarih = iso;
       return `<div style="display:flex;align-items:center;padding:4px 12px;border-bottom:1px solid #f0ebe0;gap:8px;font-size:13px">
-        <span class="masraf-tarih-badge">${tarihGoster}</span>
+        ${tarihGosterilsin ? `<span class="masraf-tarih-badge">${tarihGoster}</span>` : `<span style="min-width:72px"></span>`}
         <span style="flex:1">${r.urunAd} ${r.miktar} ${r.birim}</span>
         <div style="display:flex;gap:4px;flex-shrink:0">
           <button class="btn-sm btn-edit" onclick="h_hasatSatirDuzenle('${aliciId}','${encodeURIComponent(r.donemKey)}','${r.tarihId}','${r.urunId}','${r.tarih}','${r.urunUrunId}','${r.miktar}','${r.birim}')">✎</button>
@@ -4479,11 +4490,84 @@ function s_syncYukle(satisRecs,odemeRecs) {
 }
 
 function switchRaporTab(tab) {
-  ['gelir','alici','urun'].forEach(t => {
+  ['gelir','alici','urun','hasat'].forEach(t => {
     document.getElementById('r-tab-'+t).classList.toggle('active', t===tab);
     document.getElementById('r-panel-'+t).style.display = t===tab ? 'block' : 'none';
   });
+  if (tab === 'hasat') renderRaporHasatDagilimi();
 }
+
+function renderRaporHasatDagilimi() {
+  const el = document.getElementById('r-panel-hasat');
+  if (!el) return;
+
+  const alicilar = getAlicilar();
+
+  // Ürün bazlı hasat toplamları hesapla
+  const urunHasat = {};
+  alicilar.forEach(a => {
+    (a.donemler||[]).forEach(d => (d.tarihler||[]).forEach(t => (t.urunler||[]).forEach(u => {
+      const urunAd = u.urunAd || u.ad || '';
+      if (!urunAd) return;
+      const miktar = parseFloat(u.miktar) || 0;
+      const birim = u.birim || 'adet';
+      if (!urunHasat[urunAd]) urunHasat[urunAd] = { toplam: 0, birim, alicilar: {} };
+      urunHasat[urunAd].toplam += miktar;
+      const aliciAd = a.ad || 'Bilinmeyen';
+      urunHasat[urunAd].alicilar[aliciAd] = (urunHasat[urunAd].alicilar[aliciAd] || 0) + miktar;
+    })));
+  });
+
+  if (!Object.keys(urunHasat).length) {
+    el.innerHTML = '<div class="empty"><p>Henüz hasat verisi yok</p></div>';
+    return;
+  }
+
+  const RENKLER = ['#6aab7d','#5b9bd5','#9b7fc7','#c06060','#c8a84b','#5a9e8f','#a07850'];
+
+  // Toplam hasata göre büyükten küçüğe sırala
+  const sirali = Object.entries(urunHasat).sort((a,b) => b[1].toplam - a[1].toplam);
+
+  el.innerHTML = `<div style="margin-bottom:16px">` + sirali.map(([urunAd, data], urunIdx) => {
+    const { toplam, birim, alicilar: aliciDagilim } = data;
+    const satirlar = Object.entries(aliciDagilim)
+      .sort((a,b) => b[1] - a[1])
+      .map(([aliciAd, miktar], i) => {
+        const yuzde = toplam > 0 ? Math.round(miktar / toplam * 100) : 0;
+        const renk = RENKLER[i % RENKLER.length];
+        return `<div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--subtext);margin-bottom:4px">
+            <span style="font-weight:500">${aliciAd}</span>
+            <span>${miktar.toLocaleString('tr-TR')} ${birim}</span>
+          </div>
+          <div style="background:#f0ebe0;border-radius:6px;height:22px;overflow:hidden">
+            <div style="width:${yuzde}%;background:${renk};height:100%;border-radius:6px;display:flex;align-items:center;justify-content:center;min-width:28px;transition:width 0.3s">
+              <span style="font-size:11px;font-weight:600;color:#fff">%${yuzde}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+    const bodyId = 'rh-body-' + urunIdx;
+    return `<div class="card" style="margin-bottom:10px;overflow:hidden" data-dnd-id="${urunAd}">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer" onclick="(function(){const b=document.getElementById('${bodyId}');const open=b.style.display!=='none';b.style.display=open?'none':'block';})()">
+        <span style="color:var(--muted);font-size:16px;cursor:grab;padding-right:8px;flex-shrink:0" onclick="event.stopPropagation()">⠿</span>
+        <div style="flex:1">
+          <div class="card-name">${urunAd}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Toplam: <b>${toplam.toLocaleString('tr-TR')} ${birim}</b></div>
+        </div>
+        <span style="color:var(--leaf);font-size:14px">⋁</span>
+      </div>
+      <div id="${bodyId}" style="display:none;padding:12px 16px;background:var(--section-bg);border-top:1px solid var(--border)">
+        ${satirlar}
+      </div>
+    </div>`;
+  }).join('') + `</div>`;
+  // Sürükle-bırak
+  const _rhList = el.querySelector('div');
+  siralaDndAktifEt(_rhList, 'rapor_hasat_sirala');
+}
+
 
 function initRaporlar() {
   renderRaporGelirGider();
@@ -4670,7 +4754,8 @@ function renderRaporUrun() {
     const yuzde = toplamSatis > 0 ? Math.round(u.satis / toplamSatis * 100) : 0;
     const kar = u.satis - u.masraf;
     const kRenk = kar >= 0 ? 'var(--leaf)' : 'var(--red)';
-    return `<div style="display:grid;grid-template-columns:40px 1fr 110px 110px 110px;gap:8px;padding:8px 12px;border-bottom:1px solid #f0ebe0;font-size:13px;align-items:center">
+    return `<div style="display:grid;grid-template-columns:24px 40px 1fr 110px 110px 110px;gap:8px;padding:8px 12px;border-bottom:1px solid #f0ebe0;font-size:13px;align-items:center" data-dnd-id="${u.id}">
+      <span style="color:var(--muted);font-size:16px;cursor:grab">⠿</span>
       <span style="font-weight:700;color:var(--muted);font-size:12px">%${yuzde}</span>
       <span style="font-weight:500;color:var(--text)">${u.ad}</span>
       <span style="text-align:right;color:var(--leaf)">${fmt(u.satis)}</span>
@@ -4691,6 +4776,9 @@ function renderRaporUrun() {
       </div>
       ${rows || '<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Veri yok</div>'}
     </div>`;
+
+  const _ruList = el.querySelector('#rapor-urun-list');
+  siralaDndAktifEt(_ruList, 'rapor_urun_sirala');
 }
 
 // ── Close modal on overlay click ──
